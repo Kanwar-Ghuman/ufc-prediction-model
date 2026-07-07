@@ -87,6 +87,13 @@ def load_greco(conn: sqlite3.Connection, greco_dir: Path) -> dict[str, int]:
             ("sub_attempts", int(row["SUB.ATT"]) if row["SUB.ATT"].strip().isdigit() else None),
             ("reversals", int(row["REV."]) if row["REV."].strip().isdigit() else None),
             ("ctrl_seconds", parse_mmss_to_seconds(row["CTRL"])),
+            # Strike targets and positions — the style-profile columns.
+            ("head_landed", parse_of_pair(row["HEAD"])[0]),
+            ("body_landed", parse_of_pair(row["BODY"])[0]),
+            ("leg_landed", parse_of_pair(row["LEG"])[0]),
+            ("distance_landed", parse_of_pair(row["DISTANCE"])[0]),
+            ("clinch_landed", parse_of_pair(row["CLINCH"])[0]),
+            ("ground_landed", parse_of_pair(row["GROUND"])[0]),
         ]:
             if value is not None:
                 agg[field] += value
@@ -94,7 +101,9 @@ def load_greco(conn: sqlite3.Connection, greco_dir: Path) -> dict[str, int]:
     # --- fights ---
     stat_fields = ["knockdowns", "sig_landed", "sig_attempted", "total_landed",
                    "total_attempted", "td_landed", "td_attempted",
-                   "sub_attempts", "reversals", "ctrl_seconds"]
+                   "sub_attempts", "reversals", "ctrl_seconds",
+                   "head_landed", "body_landed", "leg_landed",
+                   "distance_landed", "clinch_landed", "ground_landed"]
     for row in _read_csv(greco_dir / "ufc_fight_results.csv"):
         event_name = _clean(row["EVENT"])
         bout = parse_bout(_clean(row["BOUT"]))

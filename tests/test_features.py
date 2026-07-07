@@ -9,13 +9,16 @@ from octagon.features.build import Bout, build_feature_rows, swap_corners
 
 
 def make_stats(sig_landed=30, sig_attempted=60, td_landed=2, td_attempted=4,
-               knockdowns=0, sub_attempts=1, ctrl_seconds=120):
+               knockdowns=0, sub_attempts=1, ctrl_seconds=120,
+               head=20, body=6, leg=4, distance=24, clinch=4, ground=2):
     return {
         "knockdowns": knockdowns, "sig_landed": sig_landed,
         "sig_attempted": sig_attempted, "total_landed": sig_landed + 10,
         "total_attempted": sig_attempted + 10, "td_landed": td_landed,
         "td_attempted": td_attempted, "sub_attempts": sub_attempts,
         "reversals": 0, "ctrl_seconds": ctrl_seconds,
+        "head_landed": head, "body_landed": body, "leg_landed": leg,
+        "distance_landed": distance, "clinch_landed": clinch, "ground_landed": ground,
     }
 
 
@@ -133,6 +136,26 @@ def test_no_contest_freezes_elo_and_record():
     assert second["f1_elo"] == 1500.0
     assert second["f1_wins"] == 0.0
     assert second["f1_n_fights"] == 1.0
+
+
+def test_style_shares_by_hand():
+    """Where strikes land (head/body/leg) and from where (distance/clinch/
+    ground), over the last-5 window — checked against hand arithmetic."""
+    bouts = [
+        make_bout(1, "2020-01-01", "Alice", "Bob",
+                  stats1=make_stats(head=10, body=5, leg=5, distance=15, clinch=3, ground=2),
+                  stats2=make_stats(ground=8, distance=2, clinch=0)),
+        make_bout(2, "2020-06-01", "Alice", "Carol"),
+    ]
+    rows = build_feature_rows(bouts, {})
+    second = canonical(rows, 2)
+    assert second["f1_leg_share_l5"] == pytest.approx(5 / 20)
+    assert second["f1_head_share_l5"] == pytest.approx(10 / 20)
+    assert second["f1_ground_share_l5"] == pytest.approx(2 / 20)
+    # What Alice absorbed: Bob landed 8 of his 10 positioned strikes on the ground.
+    assert second["f1_ground_absorbed_share_l5"] == pytest.approx(8 / 10)
+    # Style features exist only for the l5 window — l3 stays lean.
+    assert "f1_leg_share_l3" not in second
 
 
 def test_upcoming_bout_gets_features_but_changes_nothing():

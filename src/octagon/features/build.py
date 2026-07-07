@@ -81,7 +81,8 @@ def _ratio(num: float | None, den: float | None) -> float | None:
     return num / den
 
 
-def _window_stats(window: list[PastFight], suffix: str) -> dict[str, float | None]:
+def _window_stats(window: list[PastFight], suffix: str,
+                  include_style: bool = False) -> dict[str, float | None]:
     """Rolling per-minute/accuracy stats over the last N statted fights.
 
     Rates are computed as (sum of numerators / sum of denominators) across
@@ -92,10 +93,33 @@ def _window_stats(window: list[PastFight], suffix: str) -> dict[str, float | Non
 
     def total(key: str, opponent: bool = False) -> int | None:
         rows = [(f.opp_stats if opponent else f.stats) for f in window]
-        values = [r[key] for r in rows if r and r[key] is not None]
+        values = [r.get(key) for r in rows if r and r.get(key) is not None]
         return sum(values) if values else None
 
-    return {
+    out = {}
+    if include_style:
+        # Style profile: of the significant strikes this fighter landed,
+        # what share went to the legs (kicker), and what share came on the
+        # ground / in the clinch (grappler/pressure) vs. at distance? Plus
+        # the absorbed ground share — how often this fighter ends up under
+        # someone. Only the longer window: style needs sample size.
+        tgt_total = sum(filter(None, (total("head_landed"), total("body_landed"),
+                                      total("leg_landed")))) or None
+        pos_total = sum(filter(None, (total("distance_landed"), total("clinch_landed"),
+                                      total("ground_landed")))) or None
+        opp_pos_total = sum(filter(None, (total("distance_landed", True),
+                                          total("clinch_landed", True),
+                                          total("ground_landed", True)))) or None
+        out |= {
+            f"leg_share_{suffix}": _ratio(total("leg_landed"), tgt_total),
+            f"head_share_{suffix}": _ratio(total("head_landed"), tgt_total),
+            f"ground_share_{suffix}": _ratio(total("ground_landed"), pos_total),
+            f"clinch_share_{suffix}": _ratio(total("clinch_landed"), pos_total),
+            f"ground_absorbed_share_{suffix}": _ratio(
+                total("ground_landed", opponent=True), opp_pos_total),
+        }
+
+    return out | {
         f"slpm_{suffix}": _ratio(total("sig_landed"), minutes),
         f"sapm_{suffix}": _ratio(total("sig_landed", opponent=True), minutes),
         f"sig_acc_{suffix}": _ratio(total("sig_landed"), total("sig_attempted")),
@@ -182,7 +206,7 @@ def fighter_snapshot(
                        if fights else None),
     }
     snapshot |= _window_stats(statted[-3:], "l3")
-    snapshot |= _window_stats(statted[-5:], "l5")
+    snapshot |= _window_stats(statted[-5:], "l5", include_style=True)
     return snapshot
 
 

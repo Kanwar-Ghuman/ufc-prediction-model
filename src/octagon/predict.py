@@ -107,6 +107,15 @@ def predict_card(conn, card_path: Path, artifact: dict, cfg: dict) -> str:
                                   implied_probability(row["f2_odds"]))
             lines.append(f"- market (vig-free): P({f1}) = {fair1:.3f}; "
                          f"model - market = {prob - fair1:+.3f}")
+            if "market_stack" in artifact:
+                from octagon.models import market as market_stack
+                import numpy as np
+
+                a, b = artifact["market_stack"]
+                p_stacked = market_stack.predict_stack(
+                    a, b, np.array([fair1]), np.array([prob]))[0]
+                lines.append(f"- market-aware stack: P({f1}) = {p_stacked:.3f} "
+                             "(the odds, lightly adjusted — the sharpest number here)")
 
         m = methods.loc[idx]
         lines.append(

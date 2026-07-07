@@ -116,6 +116,17 @@ def cmd_train(args: argparse.Namespace, cfg: dict) -> None:
     print(f"  blend weight (LR share): {weight_lr:.2f}; train-era OOS log loss "
           f"{metrics.log_loss(y_oos, p_blend):.4f}")
 
+    # Market-aware stack (PRD 5.6): fit on the priced subset of the same OOS.
+    from octagon.models import baselines, market
+
+    priced = mask & df["f1_odds"].notna() & df["f2_odds"].notna()
+    p_mkt = baselines.market(df[priced])
+    idx = mask[mask].index.get_indexer(priced[priced].index)
+    stack_a, stack_b = market.fit_stack(
+        df.loc[priced, "label"].to_numpy(dtype=float), p_mkt, p_blend[idx])
+    print(f"  market stack (a=market, b=skill): a={stack_a:.3f}, b={stack_b:.3f} "
+          f"on {int(priced.sum())} priced OOS fights")
+
     artifacts = resolve_path("artifacts")
     artifacts.mkdir(exist_ok=True)
     metrics.reliability_diagram(
@@ -128,6 +139,7 @@ def cmd_train(args: argparse.Namespace, cfg: dict) -> None:
         "iso": iso,
         "model": final_model,
         "weight_lr": weight_lr,
+        "market_stack": (stack_a, stack_b),
         "feature_list": list(gbm.feature_frame(df).columns),
         "splits": dict(cfg["splits"]),
         "seed": seed,

@@ -130,14 +130,17 @@ thing in units.
 | better record (picking rule) | 1010 | 0.571 | — | — | — | — |
 | higher Elo (K=80) | 1010 | 0.556 | 0.681 | 0.244 | 0.591 | 0.031 |
 | **market (vig-free favorite)** | 697 | **0.679** | **0.604** | 0.208 | 0.734 | 0.048 |
-| logistic regression (walk-forward) | 1010 | 0.597 | 0.650 | 0.230 | 0.652 | 0.054 |
-| GBM, tuned + isotonic | 1010 | 0.604 | 0.655 | 0.232 | 0.654 | 0.033 |
-| LR+GBM blend (w tuned on train-era OOS) | 1010 | 0.602 | 0.652 | 0.230 | 0.659 | 0.038 |
-| — same three on the priced subset — | 697 | 0.606 / 0.611 / 0.607 | 0.646 / 0.652 / 0.648 | | 0.663 / 0.662 / **0.669** | |
+| logistic regression (walk-forward) | 1010 | 0.601 | 0.651 | 0.230 | 0.652 | 0.046 |
+| GBM, tuned + isotonic | 1010 | 0.598 | 0.659 | 0.234 | 0.649 | 0.040 |
+| skill blend (w tuned on train-era OOS) | 1010 | 0.598 | 0.659 | 0.234 | 0.649 | 0.040 |
+| **market-aware stack** (priced subset) | 697 | 0.676 | **0.602** | 0.208 | 0.733 | 0.052 |
 
-(Numbers are from the current v2 feature set and re-tune; the pre-v2 run
-differed by ±0.005 log loss and ±2pp accuracy on the same fights — a useful
-calibration for how much of any single number is noise.)
+(Numbers move ±0.005 log loss / ±2pp accuracy between re-tunes on the same
+fights — a useful calibration for how much of any single number is noise.
+This tune's skill-blend weight collapsed to pure GBM because the GBM won the
+train-era out-of-sample comparison; on validation the LR is the better skill
+model. Era variance, accepted rather than hand-tuned away. The market-aware
+stack row IS the odds plus a residual — see the next section before quoting it.)
 
 Read it honestly: every skill model beats every skill baseline and meets the
 PRD's calibration targets (log loss < 0.66, ECE < 0.05, AUC > 0.65). The GBM
@@ -173,6 +176,33 @@ already in the model, raw loss counts act as an experience proxy.
   `octagon predict` its six probabilities are rescaled to agree with the
   calibrated blend's win probability — the blend decides *who*, this model
   only splits the *how*.
+
+## Trying to beat the market (v2.1): what worked, what didn't
+
+The request every prediction project eventually gets: "make it beat the
+betting market." Here is what was tried, with receipts (all walk-forward on
+validation, combiner weights fit on train-era out-of-sample fights only):
+
+| approach | result |
+|---|---|
+| Style features (head/body/leg targets, distance/clinch/ground positions from the per-round data) | Null: ±0.0005 log loss. Real data, no marginal signal at this sample size. Kept for explanations. |
+| Odds as a plain GBM feature | **Worse than the market alone** (0.615 vs 0.604): most training rows are unpriced, so the trees dilute the market signal with weaker features. |
+| Convex blend of market + skill probabilities | Optimizer put weight **1.00 on the market**. By simple mixing, our skill model adds nothing. |
+| **Log-odds stack**: `sigmoid(a·logit(market) + b·logit(skill))`, a≈1.03, b≈0.24 in the shipped artifact | **0.602 log loss vs market's 0.6035** on 697 priced validation fights (0.6004 in the exploration run — the spread between those two IS the noise). |
+
+Read the last row with adult supervision: 0.003 log loss on 697 fights is
+inside this project's demonstrated noise band, the stack's *accuracy* is a
+hair lower than the market's, and the edge — if real — is far smaller than
+the vig. The fitted coefficients tell the true story: take the market,
+sharpen it ~6% (best-available-line odds are slightly underconfident), add
+a whisper of skill. This model **is** the odds; per PRD 5.6 its numbers are
+never reported as "beating the odds."
+
+What would actually move the needle — and why it isn't here: injury and
+camp reports, late replacement/short-notice data, weigh-in results, and
+line movement are what the market prices in that we don't have. None has a
+clean public dataset; the market aggregates them through people wagering
+money. That asymmetry is the lesson, not an implementation gap.
 
 ## Repo layout
 

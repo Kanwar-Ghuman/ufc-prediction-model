@@ -27,14 +27,26 @@ CONTEXT_NUMERIC = ["title_fight", "scheduled_rounds", "gender_num"]
 CONTEXT_CATEGORICAL = ["weight_class"]
 
 
-def feature_frame(df: pd.DataFrame) -> pd.DataFrame:
-    """Model inputs with proper dtypes; swap-invariant except diff signs."""
+def feature_frame(df: pd.DataFrame, market_aware: bool = False) -> pd.DataFrame:
+    """Model inputs with proper dtypes; swap-invariant except diff signs.
+
+    market_aware=True adds the vig-free market opinion as a differential
+    (PRD 5.6). fair1 - fair2 negates under a corner swap like every other
+    diff, so the symmetry machinery needs no special cases; unpriced fights
+    get NaN, which LightGBM routes natively ("no odds -> use skill").
+    NEVER report this variant's accuracy as "our model beat the odds" —
+    it IS the odds, plus whatever residual skill the trees find.
+    """
     diffs = sorted(c for c in df.columns if c.startswith("diff_"))
     X = df[diffs].astype(float).copy()
     X["title_fight"] = df["title_fight"].astype(float)
     X["scheduled_rounds"] = df["scheduled_rounds"].astype(float)
     X["gender_num"] = (df["gender"] == "F").astype(float)
     X["weight_class"] = df["weight_class"].astype("category")
+    if market_aware:
+        p1 = 1.0 / df["f1_odds"].astype(float)
+        p2 = 1.0 / df["f2_odds"].astype(float)
+        X["diff_market"] = (p1 - p2) / (p1 + p2)  # fair1 - fair2, vig removed
     return X
 
 
@@ -49,19 +61,19 @@ def _augmented(X: pd.DataFrame, y: np.ndarray) -> tuple[pd.DataFrame, np.ndarray
 
 
 def fit(train_df: pd.DataFrame, params: dict, eval_df: pd.DataFrame | None = None,
-        seed: int = 42) -> LGBMClassifier:
+        seed: int = 42, market_aware: bool = False) -> LGBMClassifier:
     """Fit on augmented training data; optional early stopping on eval_df.
 
     Early stopping is only used during hyperparameter tuning (where the fold
     window doubles as the stopping set). Final fits use the tuned, FIXED
     n_estimators so evaluation windows are never peeked at.
     """
-    X, y = _augmented(feature_frame(train_df), train_df["label"].to_numpy())
+    X, y = _augmented(feature_frame(train_df, market_aware), train_df["label"].to_numpy())
     model = LGBMClassifier(objective="binary", random_state=seed, verbose=-1, **params)
     kwargs = {}
     if eval_df is not None:
         kwargs = {
-            "eval_set": [(feature_frame(eval_df), eval_df["label"].to_numpy())],
+            "eval_set": [(feature_frame(eval_df, market_aware), eval_df["label"].to_numpy())],
             "eval_metric": "binary_logloss",
             "callbacks": [early_stopping(stopping_rounds=50, verbose=False)],
         }
@@ -69,9 +81,10 @@ def fit(train_df: pd.DataFrame, params: dict, eval_df: pd.DataFrame | None = Non
     return model
 
 
-def predict_sym(model: LGBMClassifier, df: pd.DataFrame) -> np.ndarray:
+def predict_sym(model: LGBMClassifier, df: pd.DataFrame,
+                market_aware: bool = False) -> np.ndarray:
     """Symmetrized P(fighter1 wins): exact corner invariance by construction."""
-    X = feature_frame(df)
+    X = feature_frame(df, market_aware)
     flipped = X.copy()
     for col in flipped.columns:
         if col.startswith("diff_"):
@@ -82,7 +95,8 @@ def predict_sym(model: LGBMClassifier, df: pd.DataFrame) -> np.ndarray:
 
 
 def walk_forward_predict(
-    df: pd.DataFrame, windows: list[tuple[str, str]], params: dict, seed: int = 42
+    df: pd.DataFrame, windows: list[tuple[str, str]], params: dict, seed: int = 42,
+    market_aware: bool = False,
 ) -> pd.Series:
     """Same contract as logistic.walk_forward_predict: for each window,
     train on strictly earlier fights only. No early stopping here."""
@@ -92,8 +106,8 @@ def walk_forward_predict(
         window = df[(df["date"] >= start) & (df["date"] <= end)]
         if len(train) == 0 or len(window) == 0:
             continue
-        model = fit(train, params, seed=seed)
-        out.loc[window.index] = predict_sym(model, window)
+        model = fit(train, params, seed=seed, market_aware=market_aware)
+        out.loc[window.index] = predict_sym(model, window, market_aware=market_aware)
     return out
 
 

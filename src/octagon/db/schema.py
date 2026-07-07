@@ -68,6 +68,14 @@ CREATE TABLE IF NOT EXISTS fight_stats (
     sub_attempts   INTEGER,
     reversals      INTEGER,
     ctrl_seconds   INTEGER,            -- control time (NULL for old fights)
+    -- Where the landed significant strikes went (style profile):
+    head_landed    INTEGER,
+    body_landed    INTEGER,
+    leg_landed     INTEGER,
+    -- ... and from where they were thrown:
+    distance_landed INTEGER,
+    clinch_landed  INTEGER,
+    ground_landed  INTEGER,
     PRIMARY KEY (fight_id, corner)
 );
 

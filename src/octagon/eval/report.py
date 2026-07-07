@@ -97,6 +97,16 @@ def evaluate_split(df: pd.DataFrame, train_end: str, valid_end: str,
         if blend_pred is not None:
             add("LR+GBM blend (priced subset)", blend_pred, mask=priced,
                 note="same fights as market row")
+        if blend_pred is not None and "market_stack" in artifact:
+            from octagon.models import market as market_stack
+
+            a, b = artifact["market_stack"]
+            p_mkt = baselines.market(eval_df)
+            stack = np.full(len(eval_df), np.nan)
+            ok = priced & np.isfinite(blend_pred) & np.isfinite(p_mkt)
+            stack[ok] = market_stack.predict_stack(a, b, p_mkt[ok], blend_pred[ok])
+            add(f"market-aware stack (a={a:.2f}, b={b:.2f})", stack, mask=priced,
+                note="IS the odds + residual skill — never 'beat the odds'")
 
     # --- artifacts ---
     reports_dir.mkdir(parents=True, exist_ok=True)

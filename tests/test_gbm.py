@@ -69,6 +69,27 @@ def test_calibration_never_claims_certainty():
     assert 0.0 < out[0] < 1.0
 
 
+def test_market_aware_variant_is_symmetric_and_uses_the_odds():
+    df = synthetic_features()
+    rng = np.random.default_rng(3)
+    # Give every fight odds that "know" the answer, with vig.
+    p_true = np.where(df["label"] == 1, 0.75, 0.25)
+    df["f1_odds"] = 1 / np.clip(p_true + 0.02, 0.05, 0.97)
+    df["f2_odds"] = 1 / np.clip(1 - p_true + 0.02, 0.05, 0.97)
+
+    model = gbm.fit(df[df["date"] < "2020-04-01"], FAST_PARAMS, market_aware=True)
+    sample = df[df["date"] >= "2020-04-01"]
+    p_ab = gbm.predict_sym(model, sample, market_aware=True)
+    flipped = pd.DataFrame([swap_corners(r) for r in sample.to_dict("records")])
+    # swap_corners exchanges f1_odds/f2_odds, so diff_market negates too.
+    p_ba = gbm.predict_sym(model, flipped, market_aware=True)
+    np.testing.assert_allclose(p_ab, 1.0 - p_ba, atol=1e-12)
+
+    # With oracle odds available, the market-aware model must lean on them.
+    hit = ((p_ab > 0.5) == (sample["label"] == 1)).mean()
+    assert hit > 0.9
+
+
 def test_augmentation_doubles_and_flips():
     df = synthetic_features().head(10)
     X, y = gbm._augmented(gbm.feature_frame(df), df["label"].to_numpy())
