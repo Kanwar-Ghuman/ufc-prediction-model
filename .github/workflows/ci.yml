@@ -1,0 +1,20 @@
+# CI: the leakage and symmetry tests are non-negotiable (PRD section 8).
+# Every test runs on synthetic data — no UFC data needed in CI.
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.11"
+      - run: uv sync
+      - run: uv run ruff check src tests
+      - run: uv run pytest -q

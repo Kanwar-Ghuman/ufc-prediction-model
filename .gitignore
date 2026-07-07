@@ -1,0 +1,20 @@
+# Data is immutable-but-large and rebuildable from sources; never commit it.
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Generated reports: markdown + plots ARE committed (results showcase);
+# bulky per-fight prediction dumps are not.
+reports/*.parquet
+
+# Trained model artifacts (regenerate with `octagon train`)
+artifacts/
+
+# OS
+.DS_Store

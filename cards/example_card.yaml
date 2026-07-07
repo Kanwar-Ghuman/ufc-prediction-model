@@ -1,0 +1,19 @@
+# Example upcoming card for `python -m octagon predict --card cards/example_card.yaml`
+# Fighter names must match ufcstats spelling (check data/ufc.db fighters table).
+# odds are decimal [fighter1, fighter2] and optional.
+date: 2026-07-11
+event: "Example card (hypothetical matchups)"
+fights:
+  - fighter1: "Islam Makhachev"
+    fighter2: "Arman Tsarukyan"
+    weight_class: "Lightweight"
+    title_fight: true
+    rounds: 5
+    odds: [1.45, 2.85]
+  - fighter1: "Alexa Grasso"
+    fighter2: "Valentina Shevchenko"
+    weight_class: "Women's Flyweight"
+    rounds: 5
+  - fighter1: "Arnold Allen"
+    fighter2: "Melquizael Costa"
+    weight_class: "Featherweight"
