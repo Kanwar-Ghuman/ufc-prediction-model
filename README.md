@@ -177,6 +177,34 @@ already in the model, raw loss counts act as an experience proxy.
   calibrated blend's win probability — the blend decides *who*, this model
   only splits the *how*.
 
+## v2.2: the verified upgrades (raw features + seed ensembling)
+
+Ablations on 5,549 out-of-sample fights (walk-forward 2015→2023) with
+**paired bootstrap CIs**, the protocol that finally has enough resolution:
+
+| change | Δ log loss vs base [95% CI] |
+|---|---|
+| 5-seed ensemble | −0.0017 [−0.0034, −0.0001] |
+| raw f1_/f2_ features next to diffs | −0.0105 [−0.0155, −0.0056] |
+| **both (adopted, in config.yaml)** | **−0.0126 [−0.0172, −0.0079]** |
+
+Why raw features work: differentials erase the *pairing* — "wrestler vs. bad
+takedown defense" is an interaction of two absolute levels that
+`f1_td15 − f2_td15` cannot see. The corner-swap machinery was extended so
+symmetry stays exact (raw columns exchange, diffs negate; tested to 1e-12).
+Also tested and rejected honestly: method-aware Elo (finishes moving ratings
+more) — best variant −0.0005, not worth the parameter.
+
+With the stronger skill model, the market-aware stack now beats the market
+on **all four metrics** on priced validation fights: log loss 0.6000 vs
+0.6035, accuracy 68.0% vs 67.9%, AUC 0.735 vs 0.734, ECE 0.038 vs 0.048 —
+still a small edge, still not bettable after vig, still reported under
+PRD 5.6's rule.
+
+`octagon fetch-card` scrapes the next UFC event's announced card from
+Wikipedia (proper API, no bot walls) into a ready-to-predict YAML, resolving
+accented spellings against ufcstats names automatically.
+
 ## Trying to beat the market (v2.1): what worked, what didn't
 
 The request every prediction project eventually gets: "make it beat the

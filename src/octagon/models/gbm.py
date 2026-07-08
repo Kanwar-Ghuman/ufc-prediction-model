@@ -26,9 +26,19 @@ from lightgbm import LGBMClassifier, early_stopping
 CONTEXT_NUMERIC = ["title_fight", "scheduled_rounds", "gender_num"]
 CONTEXT_CATEGORICAL = ["weight_class"]
 
+# Per-corner columns that are labels/identifiers, never features.
+_NON_FEATURE = {"f1_name", "f2_name", "f1_odds", "f2_odds"}
 
-def feature_frame(df: pd.DataFrame, market_aware: bool = False) -> pd.DataFrame:
-    """Model inputs with proper dtypes; swap-invariant except diff signs.
+
+def feature_frame(df: pd.DataFrame, market_aware: bool = False,
+                  include_raw: bool = False) -> pd.DataFrame:
+    """Model inputs with proper dtypes.
+
+    include_raw=True adds each fighter's own columns (f1_*, f2_*) next to
+    the differentials. Diffs erase the PAIRING: 'wrestler vs. bad takedown
+    defense' is an interaction of two absolute levels, invisible to
+    f1_td15 - f2_td15 alone. Trees can find such interactions — but only
+    if they can see the levels.
 
     market_aware=True adds the vig-free market opinion as a differential
     (PRD 5.6). fair1 - fair2 negates under a corner swap like every other
@@ -39,6 +49,11 @@ def feature_frame(df: pd.DataFrame, market_aware: bool = False) -> pd.DataFrame:
     """
     diffs = sorted(c for c in df.columns if c.startswith("diff_"))
     X = df[diffs].astype(float).copy()
+    if include_raw:
+        raw = sorted(c for c in df.columns
+                     if c.startswith(("f1_", "f2_")) and c not in _NON_FEATURE)
+        for col in raw:
+            X[col] = df[col].astype(float)
     X["title_fight"] = df["title_fight"].astype(float)
     X["scheduled_rounds"] = df["scheduled_rounds"].astype(float)
     X["gender_num"] = (df["gender"] == "F").astype(float)
@@ -50,30 +65,70 @@ def feature_frame(df: pd.DataFrame, market_aware: bool = False) -> pd.DataFrame:
     return X
 
 
-def _augmented(X: pd.DataFrame, y: np.ndarray) -> tuple[pd.DataFrame, np.ndarray]:
-    """Append the corner-swapped copy of every row (negated diffs, flipped
-    label). Context columns are swap-invariant and stay as they are."""
-    flipped = X.copy()
-    for col in flipped.columns:
+def _flip(X: pd.DataFrame) -> pd.DataFrame:
+    """The corner swap in feature space: diffs negate, f1_*/f2_* exchange,
+    context stays. Every symmetry guarantee in this module rests on this
+    function being the exact mirror of swap_corners."""
+    out = X.copy()
+    for col in X.columns:
         if col.startswith("diff_"):
-            flipped[col] = -flipped[col]
-    return pd.concat([X, flipped], ignore_index=True), np.concatenate([y, 1 - y])
+            out[col] = -X[col]
+        elif col.startswith("f1_"):
+            out[col] = X["f2_" + col[3:]]
+        elif col.startswith("f2_"):
+            out[col] = X["f1_" + col[3:]]
+    return out
+
+
+def _augmented(X: pd.DataFrame, y: np.ndarray) -> tuple[pd.DataFrame, np.ndarray]:
+    """Append the corner-swapped copy of every row with the label flipped."""
+    return pd.concat([X, _flip(X)], ignore_index=True), np.concatenate([y, 1 - y])
+
+
+class SeedEnsemble:
+    """Average of identically-specified models trained with different seeds.
+
+    A single GBM's predictions carry seed luck (bagging draws, feature
+    sampling). Averaging a handful of seeds removes that variance without
+    touching bias — the closest thing to a free improvement in ML.
+    Exposes predict_proba so the symmetrized prediction code can't tell
+    it apart from a single model.
+    """
+
+    def __init__(self, members: list[LGBMClassifier]):
+        self.members = members
+
+    def predict_proba(self, X) -> np.ndarray:
+        return np.mean([m.predict_proba(X) for m in self.members], axis=0)
 
 
 def fit(train_df: pd.DataFrame, params: dict, eval_df: pd.DataFrame | None = None,
-        seed: int = 42, market_aware: bool = False) -> LGBMClassifier:
+        seed: int = 42, market_aware: bool = False, include_raw: bool = False,
+        n_seeds: int = 1) -> LGBMClassifier | SeedEnsemble:
     """Fit on augmented training data; optional early stopping on eval_df.
 
     Early stopping is only used during hyperparameter tuning (where the fold
     window doubles as the stopping set). Final fits use the tuned, FIXED
     n_estimators so evaluation windows are never peeked at.
+    n_seeds > 1 returns a SeedEnsemble (no early stopping in that path).
     """
-    X, y = _augmented(feature_frame(train_df, market_aware), train_df["label"].to_numpy())
+    X, y = _augmented(feature_frame(train_df, market_aware, include_raw),
+                      train_df["label"].to_numpy())
+    if n_seeds > 1:
+        members = []
+        for s in range(n_seeds):
+            m = LGBMClassifier(objective="binary", random_state=seed + s,
+                               verbose=-1, **params)
+            m.fit(X, y)
+            members.append(m)
+        return SeedEnsemble(members)
+
     model = LGBMClassifier(objective="binary", random_state=seed, verbose=-1, **params)
     kwargs = {}
     if eval_df is not None:
         kwargs = {
-            "eval_set": [(feature_frame(eval_df, market_aware), eval_df["label"].to_numpy())],
+            "eval_set": [(feature_frame(eval_df, market_aware, include_raw),
+                          eval_df["label"].to_numpy())],
             "eval_metric": "binary_logloss",
             "callbacks": [early_stopping(stopping_rounds=50, verbose=False)],
         }
@@ -81,22 +136,18 @@ def fit(train_df: pd.DataFrame, params: dict, eval_df: pd.DataFrame | None = Non
     return model
 
 
-def predict_sym(model: LGBMClassifier, df: pd.DataFrame,
-                market_aware: bool = False) -> np.ndarray:
+def predict_sym(model, df: pd.DataFrame, market_aware: bool = False,
+                include_raw: bool = False) -> np.ndarray:
     """Symmetrized P(fighter1 wins): exact corner invariance by construction."""
-    X = feature_frame(df, market_aware)
-    flipped = X.copy()
-    for col in flipped.columns:
-        if col.startswith("diff_"):
-            flipped[col] = -flipped[col]
+    X = feature_frame(df, market_aware, include_raw)
     p = model.predict_proba(X)[:, 1]
-    p_flipped = model.predict_proba(flipped)[:, 1]
+    p_flipped = model.predict_proba(_flip(X))[:, 1]
     return (p + (1.0 - p_flipped)) / 2.0
 
 
 def walk_forward_predict(
     df: pd.DataFrame, windows: list[tuple[str, str]], params: dict, seed: int = 42,
-    market_aware: bool = False,
+    market_aware: bool = False, include_raw: bool = False, n_seeds: int = 1,
 ) -> pd.Series:
     """Same contract as logistic.walk_forward_predict: for each window,
     train on strictly earlier fights only. No early stopping here."""
@@ -106,13 +157,16 @@ def walk_forward_predict(
         window = df[(df["date"] >= start) & (df["date"] <= end)]
         if len(train) == 0 or len(window) == 0:
             continue
-        model = fit(train, params, seed=seed, market_aware=market_aware)
-        out.loc[window.index] = predict_sym(model, window, market_aware=market_aware)
+        model = fit(train, params, seed=seed, market_aware=market_aware,
+                    include_raw=include_raw, n_seeds=n_seeds)
+        out.loc[window.index] = predict_sym(model, window, market_aware=market_aware,
+                                            include_raw=include_raw)
     return out
 
 
 def tune(df: pd.DataFrame, tuning_windows: list[tuple[str, str]],
-         n_trials: int = 40, seed: int = 42) -> tuple[dict, float]:
+         n_trials: int = 40, seed: int = 42,
+         include_raw: bool = False) -> tuple[dict, float]:
     """Optuna search scored by mean walk-forward log loss over train-era folds.
 
     Each trial trains with early stopping (the fold window is the stopping
@@ -143,8 +197,9 @@ def tune(df: pd.DataFrame, tuning_windows: list[tuple[str, str]],
             window = df[(df["date"] >= start) & (df["date"] <= end)]
             if len(train) < 500 or len(window) == 0:
                 continue
-            model = fit(train, params, eval_df=window, seed=seed)
-            losses.append(log_loss(window["label"].to_numpy(), predict_sym(model, window)))
+            model = fit(train, params, eval_df=window, seed=seed, include_raw=include_raw)
+            losses.append(log_loss(window["label"].to_numpy(),
+                                   predict_sym(model, window, include_raw=include_raw)))
             best_iters.append(model.best_iteration_ or params["n_estimators"])
         trial.set_user_attr("mean_best_iter", float(np.mean(best_iters)))
         return float(np.mean(losses))

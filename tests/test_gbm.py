@@ -71,7 +71,6 @@ def test_calibration_never_claims_certainty():
 
 def test_market_aware_variant_is_symmetric_and_uses_the_odds():
     df = synthetic_features()
-    rng = np.random.default_rng(3)
     # Give every fight odds that "know" the answer, with vig.
     p_true = np.where(df["label"] == 1, 0.75, 0.25)
     df["f1_odds"] = 1 / np.clip(p_true + 0.02, 0.05, 0.97)
@@ -88,6 +87,32 @@ def test_market_aware_variant_is_symmetric_and_uses_the_odds():
     # With oracle odds available, the market-aware model must lean on them.
     hit = ((p_ab > 0.5) == (sample["label"] == 1)).mean()
     assert hit > 0.9
+
+
+def test_raw_features_with_seed_ensemble_stay_exactly_symmetric():
+    """The v2.2 production configuration: raw f1_/f2_ levels + diffs,
+    averaged over seeds. Symmetry must survive both extensions."""
+    df = synthetic_features()
+    model = gbm.fit(df[df["date"] < "2020-04-01"], FAST_PARAMS,
+                    include_raw=True, n_seeds=3)
+    assert hasattr(model, "members") and len(model.members) == 3
+    sample = df[df["date"] >= "2020-04-01"]
+    p_ab = gbm.predict_sym(model, sample, include_raw=True)
+    flipped = pd.DataFrame([swap_corners(r) for r in sample.to_dict("records")])
+    p_ba = gbm.predict_sym(model, flipped, include_raw=True)
+    np.testing.assert_allclose(p_ab, 1.0 - p_ba, atol=1e-12)
+
+
+def test_flip_exchanges_raw_columns_and_negates_diffs():
+    df = synthetic_features().head(5)
+    X = gbm.feature_frame(df, include_raw=True)
+    flipped = gbm._flip(X)
+    np.testing.assert_allclose(flipped["f1_wins"].to_numpy(),
+                               X["f2_wins"].to_numpy())
+    np.testing.assert_allclose(flipped["f2_elo"].to_numpy(), X["f1_elo"].to_numpy())
+    np.testing.assert_allclose(flipped["diff_elo"].to_numpy(), -X["diff_elo"].to_numpy())
+    np.testing.assert_allclose(flipped["scheduled_rounds"].to_numpy(),
+                               X["scheduled_rounds"].to_numpy())
 
 
 def test_augmentation_doubles_and_flips():

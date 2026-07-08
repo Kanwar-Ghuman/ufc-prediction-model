@@ -1,0 +1,81 @@
+date: '2026-07-11'
+event: 'UFC 329: McGregor vs. Holloway 2'
+fights:
+- fighter1: Conor McGregor
+  fighter2: Max Holloway
+  weight_class: Welterweight
+  title_fight: false
+  rounds: 5
+  odds: null
+- fighter1: Benoît Saint Denis
+  fighter2: Paddy Pimblett
+  weight_class: Lightweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Cory Sandhagen
+  fighter2: Mario Bautista
+  weight_class: Bantamweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Brandon Royval
+  fighter2: Lone'er Kavanagh
+  weight_class: Flyweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: King Green
+  fighter2: Terrance McKinney
+  weight_class: Lightweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Robert Whittaker
+  fighter2: Nikita Krylov
+  weight_class: Light Heavyweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Gable Steveson
+  fighter2: Elisha Ellison
+  weight_class: Heavyweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Cody Garbrandt
+  fighter2: Adrian Yañez
+  weight_class: Bantamweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Luke Riley
+  fighter2: Kai Kamaka III
+  weight_class: Featherweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Tracy Cortez
+  fighter2: Wang Cong
+  weight_class: Women's Flyweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Damian Pinas
+  fighter2: César Almeida
+  weight_class: Middleweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Ryan Gandra
+  fighter2: Zachary Reese
+  weight_class: Middleweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Alessandro Costa
+  fighter2: Cody Durden
+  weight_class: Flyweight
+  title_fight: false
+  rounds: 3
+  odds: null

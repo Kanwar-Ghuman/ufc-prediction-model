@@ -5,6 +5,7 @@ instead of pretending.
 """
 
 import argparse
+import re
 from pathlib import Path
 
 from octagon.config import load_config, resolve_path
@@ -89,16 +90,20 @@ def cmd_train(args: argparse.Namespace, cfg: dict) -> None:
     df = pd.read_parquet(resolve_path(cfg["data"]["processed_dir"]) / "features.parquet")
     train_end = cfg["splits"]["train_end"]
     seed = cfg["seed"]
+    include_raw = cfg["model"]["include_raw"]
+    n_seeds = cfg["model"]["n_seeds"]
     windows = semiannual_windows("2016-12-31", train_end)
 
     print(f"Tuning LightGBM: {args.trials} Optuna trials x {len(windows)} "
           f"walk-forward folds (2017 -> {train_end}) ...")
-    params, cv_loss = gbm.tune(df, windows, n_trials=args.trials, seed=seed)
+    params, cv_loss = gbm.tune(df, windows, n_trials=args.trials, seed=seed,
+                               include_raw=include_raw)
     print(f"  best walk-forward CV log loss: {cv_loss:.4f}")
     print(f"  params: {params}")
 
     # Out-of-sample train-era predictions -> the calibrator's training data.
-    oos = gbm.walk_forward_predict(df, windows, params, seed=seed)
+    oos = gbm.walk_forward_predict(df, windows, params, seed=seed,
+                                   include_raw=include_raw, n_seeds=n_seeds)
     mask = oos.notna()
     y_oos = df.loc[mask, "label"].to_numpy(dtype=float)
     p_oos = oos[mask].to_numpy()
@@ -132,15 +137,21 @@ def cmd_train(args: argparse.Namespace, cfg: dict) -> None:
     metrics.reliability_diagram(
         {"GBM raw": (y_oos, p_oos), "GBM + isotonic": (y_oos, p_cal)},
         artifacts / "calibration_train_oos.png")
-    final_model = gbm.fit(df[df["date"] <= train_end], params, seed=seed)
+    final_model = gbm.fit(df[df["date"] <= train_end], params, seed=seed,
+                          include_raw=include_raw, n_seeds=n_seeds)
     joblib.dump({
         "params": params,
         "cv_log_loss": cv_loss,
         "iso": iso,
         "model": final_model,
+        # SHAP needs a single tree model; explanations use the first member.
+        "shap_model": final_model.members[0] if hasattr(final_model, "members")
+                      else final_model,
+        "include_raw": include_raw,
+        "n_seeds": n_seeds,
         "weight_lr": weight_lr,
         "market_stack": (stack_a, stack_b),
-        "feature_list": list(gbm.feature_frame(df).columns),
+        "feature_list": list(gbm.feature_frame(df, include_raw=include_raw).columns),
         "splits": dict(cfg["splits"]),
         "seed": seed,
         "n_trials": args.trials,
@@ -168,6 +179,41 @@ def cmd_evaluate(args: argparse.Namespace, cfg: dict) -> None:
     out.write_text(md, encoding="utf-8")
     print(md)
     print(f"\nWrote {out}")
+
+
+def cmd_fetch_card(args: argparse.Namespace, cfg: dict) -> None:
+    """Build a card YAML for the next UFC event from Wikipedia."""
+    import yaml
+
+    from octagon.scraping.wikipedia import card_yaml, fight_card, next_event
+
+    if args.event:
+        page = event_name = args.event
+        iso_date = args.date or raise_missing_date()
+    else:
+        page, event_name, iso_date = next_event()
+    bouts = fight_card(page)
+    if not bouts:
+        raise SystemExit(f"No announced bouts parsed from Wikipedia page '{page}'.")
+
+    card = card_yaml(event_name, iso_date, bouts)
+    out = Path(args.out) if args.out else resolve_path("cards") / (
+        re.sub(r"[^a-z0-9]+", "_", event_name.lower()).strip("_") + ".yaml")
+    out.parent.mkdir(exist_ok=True)
+    out.write_text(yaml.safe_dump(card, sort_keys=False, allow_unicode=True),
+                   encoding="utf-8")
+    print(f"{event_name} — {iso_date}: {len(bouts)} bouts")
+    for b in bouts:
+        print(f"  {b['weight_class']}: {b['fighter1']} vs. {b['fighter2']}"
+              + ("  [title]" if b["title_fight"] else ""))
+    print(f"\nWrote {out}")
+    print("Review the names (Wikipedia spellings can differ from ufcstats), "
+          "optionally add decimal odds, then run:")
+    print(f"  uv run python -m octagon predict --card {out}")
+
+
+def raise_missing_date():
+    raise SystemExit("--date YYYY-MM-DD is required when --event is given")
 
 
 def cmd_predict(args: argparse.Namespace, cfg: dict) -> None:
@@ -291,9 +337,11 @@ def cmd_explain(args: argparse.Namespace, cfg: dict) -> None:
         # Global view over the validation era (fights the final model never saw).
         valid = df[(df["date"] > cfg["splits"]["train_end"])
                    & (df["date"] <= cfg["splits"]["valid_end"])]
-        importance = explain.global_importance(artifact["model"], valid)
+        shap_model = artifact.get("shap_model", artifact["model"])
+        raw_flag = artifact.get("include_raw", False)
+        importance = explain.global_importance(shap_model, valid, raw_flag)
         out = reports_dir / "shap_summary.png"
-        explain.summary_plot(artifact["model"], valid, out)
+        explain.summary_plot(shap_model, valid, out, raw_flag)
         print(f"Global SHAP importance on {len(valid)} validation fights "
               f"(mean |log-odds contribution|):\n")
         for name, value in importance.head(15).items():
@@ -301,9 +349,12 @@ def cmd_explain(args: argparse.Namespace, cfg: dict) -> None:
         print(f"\nWrote {out}")
         return
 
-    contributions = explain.explain_fight(artifact["model"], df, args.fight_id)
+    contributions = explain.explain_fight(
+        artifact.get("shap_model", artifact["model"]), df, args.fight_id,
+        artifact.get("include_raw", False))
     row = df[df["fight_id"] == args.fight_id]
-    p_raw = gbm.predict_sym(artifact["model"], row)
+    p_raw = gbm.predict_sym(artifact["model"], row,
+                            include_raw=artifact.get("include_raw", False))
     p_cal = calibration.apply(artifact["iso"], p_raw)[0]
     print(explain.render_fight_text(df, args.fight_id, contributions, p_cal))
     out = reports_dir / f"shap_fight_{args.fight_id}.png"
@@ -405,6 +456,13 @@ def main() -> None:
 
     p = sub.add_parser("backtest", help="paper-trading simulation (educational)")
     p.set_defaults(func=cmd_backtest)
+
+    p = sub.add_parser("fetch-card",
+                       help="build a card YAML for the next UFC event (Wikipedia)")
+    p.add_argument("--event", help="Wikipedia page title (default: next event)")
+    p.add_argument("--date", help="ISO date, required with --event")
+    p.add_argument("--out", help="output YAML path (default: cards/<event>.yaml)")
+    p.set_defaults(func=cmd_fetch_card)
 
     p = sub.add_parser("predict", help="predict an upcoming card from a YAML file")
     p.add_argument("--card", required=True,

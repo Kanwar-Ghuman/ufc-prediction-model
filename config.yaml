@@ -23,6 +23,13 @@ splits:
   valid_end: "2023-12-31"    # validate: 2022-2023
   # test = 2024+ (1,244 fights the models never touch until the end)
 
+# GBM configuration (v2.2, adopted after paired-bootstrap ablation on 5,549
+# OOS fights 2015-2023: raw features -0.011 log loss CI [-.016,-.006],
+# 5-seed ensemble -0.002 CI [-.003,-.000]).
+model:
+  n_seeds: 5          # average this many differently-seeded GBMs
+  include_raw: true   # f1_/f2_ levels next to diffs -> matchup interactions
+
 elo:
   initial_rating: 1500.0
   # Tuned by sweeping K over [8, 260] and scoring Elo win-probability log

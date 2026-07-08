@@ -37,16 +37,21 @@ class Elo:
         """Current rating; unseen fighters start at `initial`."""
         return self.ratings.get(fighter, self.initial)
 
-    def update(self, fighter_a: str, fighter_b: str, score_a: float) -> tuple[float, float]:
+    def update(self, fighter_a: str, fighter_b: str, score_a: float,
+               k_multiplier: float = 1.0) -> tuple[float, float]:
         """Record a result (score_a: 1 win, 0.5 draw, 0 loss for A).
 
         Returns the PRE-fight ratings — the only values allowed as features.
-        The update is zero-sum: whatever A gains, B loses.
+        The update is zero-sum: whatever A gains, B loses. k_multiplier
+        implements margin-of-victory: a first-round knockout is stronger
+        evidence of a skill gap than a split decision, so it moves ratings
+        further (PRD 5.3's optional MOV adjustment).
         """
         pre_a, pre_b = self.get(fighter_a), self.get(fighter_b)
         exp_a = expected_score(pre_a, pre_b)
-        self.ratings[fighter_a] = pre_a + self.k * (score_a - exp_a)
-        self.ratings[fighter_b] = pre_b + self.k * ((1.0 - score_a) - (1.0 - exp_a))
+        k = self.k * k_multiplier
+        self.ratings[fighter_a] = pre_a + k * (score_a - exp_a)
+        self.ratings[fighter_b] = pre_b + k * ((1.0 - score_a) - (1.0 - exp_a))
         return pre_a, pre_b
 
 

@@ -51,8 +51,27 @@ def predict_card(conn, card_path: Path, artifact: dict, cfg: dict) -> str:
     from octagon.eval import explain
     from octagon.models import calibration, ensemble, gbm, logistic, method
 
+    from octagon.db.parsing import normalize_name
+
     date, event, card = load_card(card_path)
     bouts = [b for b in load_bouts(conn) if b.date < date]
+
+    # Card sources spell names differently than ufcstats ('Benoît Saint
+    # Denis' vs 'Benoit Saint Denis') — resolve via the accent/word-order
+    # insensitive normalizer so real veterans aren't mistaken for debutants.
+    known: dict[str, str] = {}
+    for b in bouts:
+        known.setdefault(normalize_name(b.fighter1), b.fighter1)
+        known.setdefault(normalize_name(b.fighter2), b.fighter2)
+    renames = []
+    for f in card:
+        for attr in ("fighter1", "fighter2"):
+            name = getattr(f, attr)
+            match = known.get(normalize_name(name))
+            if match and match != name:
+                renames.append(f"{name} -> {match}")
+                setattr(f, attr, match)
+
     for i, f in enumerate(card):
         bouts.append(Bout(
             fight_id=-(i + 1), date=date, fighter1=f.fighter1, fighter2=f.fighter2,
@@ -67,9 +86,14 @@ def predict_card(conn, card_path: Path, artifact: dict, cfg: dict) -> str:
     history = df[df["label"].notna()]
     upcoming = df[df["label"].isna()]
 
-    gbm_model = gbm.fit(history, artifact["params"], seed=artifact["seed"])
+    raw_flag = artifact.get("include_raw", False)
+    n_seeds = artifact.get("n_seeds", 1)
+    gbm_model = gbm.fit(history, artifact["params"], seed=artifact["seed"],
+                        include_raw=raw_flag, n_seeds=n_seeds)
+    shap_model = gbm_model.members[0] if hasattr(gbm_model, "members") else gbm_model
     lr_model = logistic.fit(history)
-    p_gbm = calibration.apply(artifact["iso"], gbm.predict_sym(gbm_model, upcoming))
+    p_gbm = calibration.apply(artifact["iso"],
+                              gbm.predict_sym(gbm_model, upcoming, include_raw=raw_flag))
     p_lr = logistic.predict(lr_model, upcoming)
     p = ensemble.blend(p_lr, p_gbm, artifact["weight_lr"])
 
@@ -88,6 +112,8 @@ def predict_card(conn, card_path: Path, artifact: dict, cfg: dict) -> str:
         "model does not beat the market.",
         "",
     ]
+    if renames:
+        lines += ["Name spellings resolved against ufcstats: " + "; ".join(renames), ""]
     for i, (idx, row) in enumerate(upcoming.iterrows()):
         prob = float(p[i])
         f1, f2 = row["f1_name"], row["f2_name"]
@@ -123,7 +149,8 @@ def predict_card(conn, card_path: Path, artifact: dict, cfg: dict) -> str:
             f"dec {m['f1_dec']:.0%}; {f2} by KO {m['f2_ko']:.0%} / "
             f"sub {m['f2_sub']:.0%} / dec {m['f2_dec']:.0%}")
 
-        contributions, _ = explain.shap_symmetrized(gbm_model, upcoming.loc[[idx]])
+        contributions, _ = explain.shap_symmetrized(shap_model, upcoming.loc[[idx]],
+                                                    include_raw=raw_flag)
         top = contributions.iloc[0].sort_values(key=abs, ascending=False).head(5)
         drivers = ", ".join(f"{name} {value:+.2f}" for name, value in top.items()
                             if abs(value) > 1e-3)

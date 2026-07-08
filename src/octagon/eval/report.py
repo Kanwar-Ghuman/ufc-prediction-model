@@ -75,8 +75,10 @@ def evaluate_split(df: pd.DataFrame, train_end: str, valid_end: str,
         from octagon.models import calibration, ensemble, gbm
 
         artifact = joblib.load(artifact_path)
-        raw = gbm.walk_forward_predict(df, windows, artifact["params"],
-                                       seed=artifact["seed"]).loc[eval_df.index].to_numpy()
+        raw = gbm.walk_forward_predict(
+            df, windows, artifact["params"], seed=artifact["seed"],
+            include_raw=artifact.get("include_raw", False),
+            n_seeds=artifact.get("n_seeds", 1)).loc[eval_df.index].to_numpy()
         add("GBM (walk-forward, tuned)", raw)
         gbm_cal_pred = np.full(len(raw), np.nan)
         finite = np.isfinite(raw)

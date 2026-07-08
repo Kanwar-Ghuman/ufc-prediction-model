@@ -33,22 +33,21 @@ warnings.filterwarnings(
     "ignore", message=".*LightGBM binary classifier with TreeExplainer.*")
 
 
-def _flipped(X: pd.DataFrame) -> pd.DataFrame:
-    out = X.copy()
-    for col in out.columns:
-        if col.startswith("diff_"):
-            out[col] = -out[col]
-    return out
+_flipped = gbm._flip  # the one true corner swap in feature space
 
 
-def shap_symmetrized(model, df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+def shap_symmetrized(model, df: pd.DataFrame,
+                     include_raw: bool = False) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Per-fight, per-feature contributions to the symmetrized log-odds.
 
     Returns (contributions, features_used) aligned row-for-row with df.
+    With raw f1_/f2_ features, the flip EXCHANGES those columns, so the
+    subtraction pairs each f1 column with the model's view of the same
+    fighter in the other corner — still a clean decomposition.
     """
     import shap
 
-    X = gbm.feature_frame(df)
+    X = gbm.feature_frame(df, include_raw=include_raw)
     explainer = shap.TreeExplainer(model)
     phi = explainer.shap_values(X)
     phi_flipped = explainer.shap_values(_flipped(X))
@@ -58,13 +57,13 @@ def shap_symmetrized(model, df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFram
     return pd.DataFrame(sym, columns=X.columns, index=df.index), X
 
 
-def global_importance(model, df: pd.DataFrame) -> pd.Series:
+def global_importance(model, df: pd.DataFrame, include_raw: bool = False) -> pd.Series:
     """Mean |contribution| per feature — what the model leans on overall."""
-    contributions, _ = shap_symmetrized(model, df)
+    contributions, _ = shap_symmetrized(model, df, include_raw)
     return contributions.abs().mean().sort_values(ascending=False)
 
 
-def summary_plot(model, df: pd.DataFrame, path) -> None:
+def summary_plot(model, df: pd.DataFrame, path, include_raw: bool = False) -> None:
     """Beeswarm: each dot is one fight; color = feature value, x = push."""
     import matplotlib
 
@@ -72,7 +71,7 @@ def summary_plot(model, df: pd.DataFrame, path) -> None:
     import matplotlib.pyplot as plt
     import shap
 
-    contributions, X = shap_symmetrized(model, df)
+    contributions, X = shap_symmetrized(model, df, include_raw)
     shap.summary_plot(contributions.to_numpy(),
                       X.drop(columns=["weight_class"]).assign(
                           weight_class=X["weight_class"].cat.codes),
@@ -83,12 +82,13 @@ def summary_plot(model, df: pd.DataFrame, path) -> None:
     plt.close("all")
 
 
-def explain_fight(model, df: pd.DataFrame, fight_id: int) -> pd.Series:
+def explain_fight(model, df: pd.DataFrame, fight_id: int,
+                  include_raw: bool = False) -> pd.Series:
     """Sorted feature contributions (log-odds) for one fight."""
     row = df[df["fight_id"] == fight_id]
     if row.empty:
         raise SystemExit(f"fight_id {fight_id} not found in the feature table")
-    contributions, _ = shap_symmetrized(model, row)
+    contributions, _ = shap_symmetrized(model, row, include_raw)
     return contributions.iloc[0].sort_values(key=abs, ascending=False)
 
 
