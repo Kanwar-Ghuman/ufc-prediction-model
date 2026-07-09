@@ -138,6 +138,34 @@ def test_no_contest_freezes_elo_and_record():
     assert second["f1_n_fights"] == 1.0
 
 
+def test_domain_elos_move_with_stats_not_results():
+    """The point of domain ratings: a LOSER who dominated the striking
+    still gains striking Elo, because the stats say so."""
+    bouts = [
+        # Alice loses the decision but out-lands Bob 90 to 30.
+        make_bout(1, "2020-01-01", "Alice", "Bob", winner="fighter2",
+                  stats1=make_stats(sig_landed=90, td_landed=0, ctrl_seconds=0),
+                  stats2=make_stats(sig_landed=30, td_landed=4, ctrl_seconds=400)),
+        make_bout(2, "2020-06-01", "Alice", "Bob"),
+    ]
+    rows = build_feature_rows(bouts, {})
+    second = canonical(rows, 2)
+    assert second["f1_elo"] < 1500.0          # result Elo: Alice lost
+    assert second["f1_strike_elo"] > 1500.0   # striking Elo: Alice dominated
+    assert second["f1_grapple_elo"] < 1500.0  # grappling Elo: Bob dominated
+    assert second["diff_strike_elo"] == pytest.approx(
+        second["f1_strike_elo"] - second["f2_strike_elo"])
+
+
+def test_domain_elos_skip_fights_without_stats():
+    no_stats = make_bout(1, "2020-01-01", "Alice", "Bob")
+    no_stats.stats1 = no_stats.stats2 = None
+    rows = build_feature_rows([no_stats, make_bout(2, "2020-06-01", "Alice", "Carol")], {})
+    second = canonical(rows, 2)
+    assert second["f1_strike_elo"] == 1500.0  # nothing measurable happened
+    assert second["f1_elo"] > 1500.0          # but the win still counts
+
+
 def test_style_shares_by_hand():
     """Where strikes land (head/body/leg) and from where (distance/clinch/
     ground), over the last-5 window — checked against hand arithmetic."""

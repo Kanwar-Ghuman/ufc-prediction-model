@@ -195,11 +195,21 @@ symmetry stays exact (raw columns exchange, diffs negate; tested to 1e-12).
 Also tested and rejected honestly: method-aware Elo (finishes moving ratings
 more) — best variant −0.0005, not worth the parameter.
 
-With the stronger skill model, the market-aware stack now beats the market
-on **all four metrics** on priced validation fights: log loss 0.6000 vs
-0.6035, accuracy 68.0% vs 67.9%, AUC 0.735 vs 0.734, ECE 0.038 vs 0.048 —
-still a small edge, still not bettable after vig, still reported under
-PRD 5.6's rule.
+With the stronger skill model, the market-aware stack edges the market on
+priced validation fights — current artifact: log loss 0.6018 vs 0.6035.
+Held to the same standard as everything else, the **paired bootstrap** says:
+Δ = −0.0017, 95% CI [−0.0064, +0.0032], P(stack better) ≈ 76%. Probably a
+real sliver of an edge, not statistically proven on 697 fights, far smaller
+than the vig, and reported under PRD 5.6's rule (the stack IS the odds).
+
+**v2.3 additions**: domain ratings — striking-Elo and grappling-Elo updated
+from per-fight *stat differentials* rather than W/L (a fighter who out-lands
+everyone but drops split decisions keeps his striking rating). Ablation
+verdict: null on log loss (paired CI [−0.0023, +0.0037], accuracy +0.3pp) —
+kept because SHAP now uses them as top drivers in most fights, a good
+reminder that *importance* and *marginal predictive value* are different
+things. Also: 100-trial Optuna search (train-era CV 0.6487, from 0.6557
+at 40 trials).
 
 `octagon fetch-card` scrapes the next UFC event's announced card from
 Wikipedia (proper API, no bot walls) into a ready-to-predict YAML, resolving

@@ -47,22 +47,27 @@ def feature_frame(df: pd.DataFrame, market_aware: bool = False,
     NEVER report this variant's accuracy as "our model beat the odds" —
     it IS the odds, plus whatever residual skill the trees find.
     """
-    diffs = sorted(c for c in df.columns if c.startswith("diff_"))
-    X = df[diffs].astype(float).copy()
+    cols = sorted(c for c in df.columns if c.startswith("diff_"))
     if include_raw:
-        raw = sorted(c for c in df.columns
-                     if c.startswith(("f1_", "f2_")) and c not in _NON_FEATURE)
-        for col in raw:
-            X[col] = df[col].astype(float)
-    X["title_fight"] = df["title_fight"].astype(float)
-    X["scheduled_rounds"] = df["scheduled_rounds"].astype(float)
-    X["gender_num"] = (df["gender"] == "F").astype(float)
-    X["weight_class"] = df["weight_class"].astype("category")
+        cols += sorted(c for c in df.columns
+                       if c.startswith(("f1_", "f2_")) and c not in _NON_FEATURE)
+    # Assemble in one concat (not column-by-column inserts, which fragment
+    # the frame and spam PerformanceWarnings on wide feature sets).
+    parts = [df[cols].astype(float)]
+    context = pd.DataFrame({
+        "title_fight": df["title_fight"].astype(float),
+        "scheduled_rounds": df["scheduled_rounds"].astype(float),
+        "gender_num": (df["gender"] == "F").astype(float),
+        "weight_class": df["weight_class"].astype("category"),
+    }, index=df.index)
+    parts.append(context)
     if market_aware:
         p1 = 1.0 / df["f1_odds"].astype(float)
         p2 = 1.0 / df["f2_odds"].astype(float)
-        X["diff_market"] = (p1 - p2) / (p1 + p2)  # fair1 - fair2, vig removed
-    return X
+        parts.append(pd.DataFrame(
+            {"diff_market": (p1 - p2) / (p1 + p2)},  # fair1 - fair2, vig removed
+            index=df.index))
+    return pd.concat(parts, axis=1)
 
 
 def _flip(X: pd.DataFrame) -> pd.DataFrame:

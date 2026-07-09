@@ -16,6 +16,7 @@ The builder is a pure function over plain data (no SQL inside) so tests can
 feed it tiny synthetic histories and check the arithmetic by hand.
 """
 
+import math
 import random
 import sqlite3
 from dataclasses import dataclass, field
@@ -234,6 +235,14 @@ def build_feature_rows(
     """
     rng = random.Random(seed)
     elo = Elo(k=elo_k)
+    # Domain ratings (v2.3): Elo books updated from PER-FIGHT STATS instead
+    # of the W/L label. A fighter who out-strikes everyone but keeps losing
+    # split decisions still has elite striking — the result label destroys
+    # that information, the stat differential preserves it. Scores are soft
+    # (sigmoid of the per-minute differential), so a narrow stat edge moves
+    # ratings a little and a one-sided beating moves them a lot.
+    strike_elo = Elo(k=elo_k)
+    grapple_elo = Elo(k=elo_k)
     histories: dict[str, FighterHistory] = {}
     rows: list[dict] = []
 
@@ -244,6 +253,8 @@ def build_feature_rows(
             history = histories.setdefault(name, FighterHistory())
             snaps[corner] = fighter_snapshot(
                 history, on_date, tott_by_name.get(name), elo.get(name))
+            snaps[corner]["strike_elo"] = strike_elo.get(name)
+            snaps[corner]["grapple_elo"] = grapple_elo.get(name)
 
         if bout.winner in ("fighter1", "fighter2", "upcoming"):
             row = {
@@ -290,8 +301,49 @@ def build_feature_rows(
                 stats=own, opp_stats=opp, opp_elo_pre=opp_elo))
         if bout.winner != "nc":  # nothing was decided in a no-contest
             elo.update(bout.fighter1, bout.fighter2, _ELO_SCORES[bout.winner])
+            strike_score = _striking_score(bout)
+            if strike_score is not None:
+                strike_elo.update(bout.fighter1, bout.fighter2, strike_score)
+            grapple_score = _grappling_score(bout)
+            if grapple_score is not None:
+                grapple_elo.update(bout.fighter1, bout.fighter2, grapple_score)
 
     return rows
+
+
+def _soft_score(diff: float, scale: float) -> float:
+    """Map a stat differential to a (0, 1) 'who won this domain' score.
+
+    diff = +scale gives ~0.73, a clear but not total domain win; huge
+    differentials saturate toward 1 instead of growing without bound.
+    """
+    return 1.0 / (1.0 + math.exp(-diff / scale))
+
+
+def _striking_score(bout: Bout) -> float | None:
+    """Fighter1's striking dominance this fight: sig strikes landed per
+    minute, differential, squashed. None when stats/duration are missing."""
+    if not bout.stats1 or not bout.stats2 or not bout.duration_s:
+        return None
+    a, b = bout.stats1.get("sig_landed"), bout.stats2.get("sig_landed")
+    if a is None or b is None:
+        return None
+    minutes = bout.duration_s / 60.0
+    return _soft_score((a - b) / minutes, scale=2.0)
+
+
+def _grappling_score(bout: Bout) -> float | None:
+    """Fighter1's grappling dominance: takedowns plus control-time edge
+    (2 minutes of control ~ 1 takedown), per 15 minutes, squashed."""
+    if not bout.stats1 or not bout.stats2 or not bout.duration_s:
+        return None
+    td_a, td_b = bout.stats1.get("td_landed"), bout.stats2.get("td_landed")
+    if td_a is None or td_b is None:
+        return None
+    ctrl_a = bout.stats1.get("ctrl_seconds") or 0
+    ctrl_b = bout.stats2.get("ctrl_seconds") or 0
+    composite = (td_a - td_b) + (ctrl_a - ctrl_b) / 120.0
+    return _soft_score(composite / (bout.duration_s / 900.0), scale=2.0)
 
 
 def swap_corners(row: dict) -> dict:
