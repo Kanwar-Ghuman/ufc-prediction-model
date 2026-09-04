@@ -1,0 +1,111 @@
+date: '2026-08-01'
+event: 'UFC Fight Night: Medić vs. Rodriguez'
+# Lineup verified 2026-07-31 against ufc.com, Wikipedia and Sherdog after the
+# official weigh-in: all 28 fighters made weight, no withdrawals, 14 bouts.
+# Decimal odds refreshed 2026-07-31 from MMA Mania's full-card list (one book,
+# so the overround is consistent across bouts) — the 07-27 lines this file
+# opened with had moved on nearly every fight.
+fights:
+# --- Main card (Paramount+) ---
+- fighter1: Uroš Medić
+  fighter2: Daniel Rodriguez
+  weight_class: Welterweight
+  title_fight: false
+  rounds: 5
+  section: Main card
+  odds: [1.267, 3.95]      # -375 / +295
+- fighter1: Jan Błachowicz
+  fighter2: Navajo Stirling
+  weight_class: Light Heavyweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds: [3.6, 1.308]       # +260 / -325
+  # Stirling stepped in on short notice after Guskov was moved to Abu Dhabi.
+- fighter1: Aleksandar Rakić
+  fighter2: Marcin Tybura
+  weight_class: Heavyweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds: [1.29, 3.75]       # -345 / +275
+- fighter1: Duško Todorović
+  fighter2: Robert Valentin
+  weight_class: Middleweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds: [2.4, 1.602]       # +140 / -166
+- fighter1: Vlasto Čepo
+  fighter2: Gilbert Urbina
+  weight_class: Middleweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds: [1.282, 3.8]       # -355 / +280
+- fighter1: Noah Gugnon
+  fighter2: Miloš Janičić
+  weight_class: Lightweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds: [2.0, 1.833]       # +100 / -120  (drifted in from -150 on 07-27)
+# --- Preliminary card (Paramount+) ---
+- fighter1: Ľudovít Klein
+  fighter2: Tofiq Musayev
+  weight_class: Lightweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds: [1.42, 2.95]       # -238 / +195
+- fighter1: Oban Elliott
+  fighter2: Michael Oliveira
+  weight_class: Welterweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds: [3.8, 1.282]       # +280 / -355
+- fighter1: Borislav Nikolić
+  fighter2: Mark Vologdin
+  weight_class: Bantamweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds: [1.667, 2.3]       # -150 / +130 — MMAOddsBreaker opening line; the
+                           # books still had this one unlisted on 07-31, so
+                           # treat it as the softest market number on the card.
+- fighter1: Dennis Buzukja
+  fighter2: Bogdan Grad
+  weight_class: Featherweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds: [2.7, 1.488]       # +170 / -205
+- fighter1: Mateusz Rębecki
+  fighter2: Kyle Prepolec
+  weight_class: Lightweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds: [1.19, 5.0]        # -525 / +400
+- fighter1: Nina Nikolija Milošević
+  fighter2: Hailey Cowan
+  weight_class: Women's Bantamweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds: [1.235, 4.3]       # -425 / +330
+- fighter1: Jovan Leka
+  fighter2: Alexander Poppeck
+  weight_class: Heavyweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds: [1.459, 2.8]       # -218 / +180
+- fighter1: Stephanie Luciano
+  fighter2: Marina Spasić
+  weight_class: Women's Strawweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds: [1.351, 3.3]       # -285 / +230

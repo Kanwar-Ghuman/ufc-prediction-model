@@ -1,0 +1,47 @@
+# Dana White's Contender Series 2026: Week 3
+# Tuesday 2026-08-25, Meta Apex, Las Vegas. Five fights, UFC contracts on the line.
+#
+# READ THIS BEFORE TRUSTING ANY NUMBER FROM THIS CARD.
+# Contender Series, not a UFC card: every fighter is making their first
+# appearance under the UFC banner. UFC-history features (Elo, L5 rates,
+# rematches, common opponents) are missing on BOTH corners. The skill side
+# is regional records (Sherdog) plus the debut model. Odds do most of the
+# work, which is the honest way round on a card like this.
+#
+# ODDS PROVENANCE — LuckyRebel American moneylines as published by
+# Betting News, 2026-08-25 9:22 AM ET. Converted to decimal; predict.py
+# strips the vig. Not a multi-book consensus.
+date: '2026-08-25'
+event: "Dana White's Contender Series 2026: Week 3"
+fights:
+  - fighter1: Bella Mir
+    fighter2: Alex Apodaca
+    weight_class: Women's Bantamweight
+    rounds: 3
+    section: Main card
+    title_fight: false
+    odds: [1.0167, 16.92]     # Mir -6000 / Apodaca +1592
+  - fighter1: Mario Piazzon
+    fighter2: Guilherme Uriel
+    weight_class: Heavyweight
+    rounds: 3
+    section: Main card
+    odds: [2.40, 1.625]       # Piazzon +140 / Uriel -160
+  - fighter1: Sean Clancy Jr
+    fighter2: Gary Balletto Jr
+    weight_class: Welterweight
+    rounds: 3
+    section: Main card
+    odds: [1.1111, 7.13]      # Clancy -900 / Balletto +613
+  - fighter1: Ronald Humphrey
+    fighter2: Alexis Miranda
+    weight_class: Welterweight
+    rounds: 3
+    section: Main card
+    odds: [1.08, 8.76]        # Humphrey -1250 / Miranda +776
+  - fighter1: Nick Galanti
+    fighter2: Carlos Petruzzella
+    weight_class: Middleweight
+    rounds: 3
+    section: Main card
+    odds: [1.40, 3.07]        # Galanti -250 / Petruzzella +207

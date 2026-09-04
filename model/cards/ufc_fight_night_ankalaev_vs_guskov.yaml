@@ -1,0 +1,81 @@
+date: '2026-07-25'
+event: 'UFC Fight Night: Ankalaev vs. Guskov'
+fights:
+- fighter1: Magomed Ankalaev
+  fighter2: Bogdan Guskov
+  weight_class: Light Heavyweight
+  title_fight: false
+  rounds: 5
+  odds: null
+- fighter1: Steve Erceg
+  fighter2: Ramazan Temirov
+  weight_class: Flyweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Islam Dulatov
+  fighter2: Wellington Turman
+  weight_class: Welterweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Magomed Zaynukov
+  fighter2: Damian Rzepecki
+  weight_class: Lightweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Rizvan Kuniev
+  fighter2: Tyrell Fortune
+  weight_class: Heavyweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Abubakar Vagaev
+  fighter2: Saygid Izagakhmaev
+  weight_class: Welterweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Valter Walker
+  fighter2: Thomas Petersen
+  weight_class: Heavyweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Dustin Jacoby
+  fighter2: Muhammad Saidov
+  weight_class: Light Heavyweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Santiago Ponzinibbio
+  fighter2: Sam Patterson
+  weight_class: Welterweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Ismael Bonfim
+  fighter2: Axel Sola
+  weight_class: Lightweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Magomed Tuchalov
+  fighter2: Brendson Ribeiro
+  weight_class: Light Heavyweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Nurullo Aliev
+  fighter2: Mike Davis
+  weight_class: Lightweight
+  title_fight: false
+  rounds: 3
+  odds: null
+- fighter1: Cody Gibson
+  fighter2: Abdul Hussein
+  weight_class: Bantamweight
+  title_fight: false
+  rounds: 3
+  odds: null

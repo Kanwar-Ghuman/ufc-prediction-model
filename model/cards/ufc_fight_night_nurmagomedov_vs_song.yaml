@@ -1,0 +1,120 @@
+date: '2026-08-29'
+event: 'UFC Fight Night: Nurmagomedov vs. Song'
+fights:
+- fighter1: Umar Nurmagomedov
+  fighter2: Song Yadong
+  weight_class: Bantamweight
+  title_fight: false
+  rounds: 5
+  section: Main card
+  odds:
+  - 1.16
+  - 5.55
+- fighter1: Yan Xiaonan
+  fighter2: Denise Gomes
+  weight_class: Women's Strawweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 1.665
+  - 2.265
+- fighter1: Aoriqileng
+  fighter2: Kai Asakura
+  weight_class: Bantamweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 4.5
+  - 1.21
+- fighter1: Sumudaerji
+  fighter2: Alex Perez
+  weight_class: Flyweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 1.45
+  - 2.85
+- fighter1: Liu Ce
+  fighter2: Levi Rodrigues
+  weight_class: Light Heavyweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 1.57
+  - 2.45
+- fighter1: Bilal Hasan
+  fighter2: Nilson Rojas
+  weight_class: Flyweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 1.12
+  - 6.5
+- fighter1: Namsrai Batbayar
+  fighter2: Andre Lima
+  weight_class: Flyweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 3.2
+  - 1.36
+- fighter1: Rei Tsuruya
+  fighter2: Kevin Borjas
+  weight_class: Flyweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.12
+  - 6.75
+- fighter1: Xiao Long
+  fighter2: Francesco Nuzzi
+  weight_class: Bantamweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.59
+  - 2.42
+- fighter1: Jack Jenkins
+  fighter2: Sean Woodson
+  weight_class: Featherweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 2.2
+  - 1.69
+- fighter1: Lawrence Lui
+  fighter2: Hector de Sousa Santiago
+  weight_class: Bantamweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.3
+  - 3.67
+- fighter1: Xiong Jingnan
+  fighter2: Julia Polastri
+  weight_class: Women's Strawweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 2.88
+  - 1.44
+- fighter1: Ding Meng
+  fighter2: Cameron Nelson
+  weight_class: Welterweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.695
+  - 2.21

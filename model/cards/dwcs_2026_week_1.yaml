@@ -1,0 +1,59 @@
+# Dana White's Contender Series 2026: Week 1
+# Tuesday 2026-08-11, UFC Apex, Las Vegas.
+#
+# READ THIS BEFORE TRUSTING ANY NUMBER FROM THIS CARD.
+# This is a Contender Series card, not a UFC card, and every one of the ten
+# fighters is making their first appearance under the UFC banner. Every
+# UFC-history feature (elo, strike_elo, grapple_elo, opp_elo_l5, layoff, all
+# the l5 rate stats) is therefore missing for BOTH corners in every bout, and
+# height/reach are missing for nine of the ten — Pagliarulo and Kropschot are
+# not in the fighters table at all. The skill side of this model is running
+# close to blind here; the odds below are doing nearly all the work, which is
+# the honest way round on a card like this.
+#
+# ODDS PROVENANCE — read before trusting the market-aware numbers.
+# From the user's 2026-08-10 screenshot of a Contender Series odds board
+# (FanDuel, Caesars, BetRivers, BetWay, Unibet). Each book's pair was devigged
+# separately (normalise the two implied probabilities), then the MEDIAN fair
+# probability across books was converted back to a decimal pair. So these are
+# consensus FAIR odds with an overround of 1.0, not one book's posted line —
+# predict.py's own devig step is a no-op on them and the consensus survives.
+# Per-book overrounds were 1.039-1.077, all normal, which is the sanity check
+# that the screenshot was transcribed correctly. BetWay was the widest-vig
+# book in every bout and an outlier on Alsaghir (+130 vs. +108 elsewhere),
+# which is why no single book was used on its own.
+# CAVEAT: Kunneman vs. Kropschot was priced by BetWay ONLY, so its "consensus"
+# is one book with no cross-check. Weight it accordingly.
+date: '2026-08-11'
+event: "Dana White's Contender Series 2026: Week 1"
+fights:
+  - fighter1: Matt Adams
+    fighter2: Anthony Wint
+    weight_class: Heavyweight
+    rounds: 3
+    section: Main card
+    odds: [6.448, 1.184]      # consensus fair: Adams 15.5% / Wint 84.5% (5 books)
+  - fighter1: Abe Alsaghir
+    fighter2: Fabrizio Escarrega
+    weight_class: Lightweight
+    rounds: 3
+    section: Main card
+    odds: [2.224, 1.817]      # consensus fair: Alsaghir 45.0% / Escarrega 55.0% (5 books)
+  - fighter1: Bilal Hasan
+    fighter2: Mridul Saikia
+    weight_class: Flyweight
+    rounds: 3
+    section: Main card
+    odds: [1.112, 9.962]      # consensus fair: Hasan 90.0% / Saikia 10.0% (5 books)
+  - fighter1: Ananias Mulumba
+    fighter2: Tom Pagliarulo
+    weight_class: Featherweight
+    rounds: 3
+    section: Main card
+    odds: [1.741, 2.349]    # consensus fair: Mulumba 57.4% / Pagliarulo 42.6% (5 books)
+  - fighter1: Jon Kunneman
+    fighter2: Joe Kropschot
+    weight_class: Middleweight
+    rounds: 3
+    section: Main card
+    odds: [1.357, 3.800]      # consensus fair: Kunneman 73.7% / Kropschot 26.3% (BetWay ONLY)

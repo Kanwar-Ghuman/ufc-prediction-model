@@ -1,0 +1,60 @@
+# Shared by the CLI, notebooks, and API so splits/seeds stay in one place.
+
+seed: 42
+
+data:
+  raw_dir: data/raw
+  greco_dir: data/raw/greco           # Greco1899 ufcstats scrape (canonical fights)
+  bootstrap_dir: data/raw/bootstrap   # jansen88/ufc-data — closing odds 2014–2023
+  html_cache_dir: data/raw/html
+  processed_dir: data/processed
+  db_path: data/ufc.db
+  media_path: data/fighter_media.json
+  media_image_dir: data/fighter_images
+  sherdog_cache: data/sherdog_records.json
+
+scraping:
+  base_url: "http://ufcstats.com"
+  rate_limit_seconds: 1.0
+  timeout_seconds: 30
+  # ufc.com robots.txt: crawl-delay 15 on /athlete/.
+  ufc_delay_seconds: 15.0
+  sherdog_delay_seconds: 0.5
+  # Odds API free tier: upcoming events only. Key lives in the environment.
+  odds_api_key_env: "ODDS_API_KEY"
+  odds_api_sport: "mma_mixed_martial_arts"
+  odds_api_regions: "us"
+  youtube_api_key_env: "YOUTUBE_API_KEY"
+  # search.list is 100 quota units; keep a 14-bout card under the free daily cap.
+  youtube_videos_per_bout: 4
+  youtube_comments_per_video: 25
+
+# Chronological only. Test = 2024+.
+splits:
+  train_end: "2021-12-31"
+  valid_end: "2023-12-31"
+
+model:
+  n_seeds: 5
+  include_raw: true   # f1_/f2_ levels beside diffs (matchup interactions)
+  # Log-odds mix of market stack vs skill on priced fights. 0 = market only.
+  # 0.55 gives veterans (8+ UFC bouts each) a majority-skill vote. Debuts stay 0.
+  research_weight: 0.55
+
+elo:
+  initial_rating: 1500.0
+  # Chosen on train-era fights only via octagon.features.elo.select_k.
+  # Changing this requires rebuilding the feature table.
+  k_factor: 80.0
+  # Per-corner K multipliers. Both off: train-era Elo-only log loss got worse.
+  experience_boost: 0.0
+  finish_multiplier: 1.0
+
+betting:
+  edge_threshold: 0.04
+  kelly_fraction: 0.25
+
+# Probabilities inside this band are not presented as a pick.
+abstain:
+  low: 0.42
+  high: 0.58

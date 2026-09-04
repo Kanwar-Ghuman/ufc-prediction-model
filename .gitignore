@@ -1,5 +1,9 @@
-# Data is immutable-but-large and rebuildable from sources; never commit it.
-data/
+# Agent / editor tooling
+.claude/
+.cursor/
+
+# Data is rebuildable from sources; do not commit it.
+model/data/
 
 # Python
 __pycache__/
@@ -7,14 +11,27 @@ __pycache__/
 *.egg-info/
 .venv/
 .pytest_cache/
+.ruff_cache/
 .ipynb_checkpoints/
 
-# Generated reports: markdown + plots ARE committed (results showcase);
-# bulky per-fight prediction dumps are not.
-reports/*.parquet
+# Per-fight prediction dumps. Frozen card predictions stay in git as the
+# dated record of what was published before an event.
+model/reports/*.parquet
+!model/reports/card_predictions_*.parquet
 
-# Trained model artifacts (regenerate with `octagon train`)
-artifacts/
+# Trained artifacts (regenerate with `octagon train`)
+model/artifacts/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+.env*.local
+.env
+**/.env
+!**/.env.example
 
 # OS
 .DS_Store

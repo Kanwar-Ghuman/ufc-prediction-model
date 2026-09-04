@@ -1,0 +1,126 @@
+# UFC 330: Makhachev vs. Machado Garry
+# Saturday 2026-08-15, Xfinity Mobile Arena, Philadelphia, Pennsylvania.
+# Early prelims 5pm ET, prelims 7pm ET, main card 9pm ET (Paramount+).
+#
+# Bout order and sections from the official ufc.com scorecard page, which
+# matches the user's listing exactly (12 bouts). Name spellings are the
+# ufcstats ones for everyone with UFC history — verified fighter-by-fighter
+# against data/ufc.db, so predict.py has to rename nobody. The only two
+# names absent from the DB are genuine debutants (see notes below), not
+# misspellings.
+#
+# ODDS PROVENANCE — read before trusting the market-aware numbers.
+# Decimal odds converted from CBS Sports' published DraftKings American
+# lines as of Aug. 14 (cbssports.com/ufc/news/ufc-330-fight-card-date-...).
+# One book, one snapshot, so the whole card is internally consistent: every
+# pair's overround lands in 1.040-1.045, the normal DraftKings margin,
+# which is the arithmetic check that they were transcribed correctly.
+# These are Friday's lines, not a closing consensus — Tobias/Fernando in
+# particular was Fernando -265 at Sherdog vs. -298 here.
+date: '2026-08-15'
+event: 'UFC 330: Makhachev vs. Machado Garry'
+# Names the sources spell differently, mapped onto this card's spelling so
+# the context scraper can attribute circumstances correctly. Wikipedia calls
+# Chapolin by his given name, Eduardo Henrique da Silva.
+aliases:
+  Eduardo Henrique: Eduardo Chapolin
+  Eduardo Henrique da Silva: Eduardo Chapolin
+  Joel Álvarez: Joel Alvarez
+fights:
+  # ---------------- Main card (9pm ET) ----------------
+  - fighter1: Islam Makhachev
+    fighter2: Ian Machado Garry
+    weight_class: Welterweight
+    title_fight: true
+    rounds: 5
+    section: Main card
+    odds: [1.294, 3.70]       # Makhachev -340 / Garry +270
+  - fighter1: Mackenzie Dern
+    fighter2: Gillian Robertson
+    weight_class: Women's Strawweight
+    title_fight: true
+    rounds: 5
+    section: Main card
+    odds: [1.459, 2.80]       # Dern -218 / Robertson +180
+  - fighter1: Jalin Turner
+    fighter2: Kauê Fernandes
+    weight_class: Lightweight
+    title_fight: false
+    rounds: 3
+    section: Main card
+    odds: [1.645, 2.30]       # Turner -155 / Fernandes +130
+  - fighter1: Mansur Abdul-Malik
+    fighter2: Dustin Stoltzfus
+    weight_class: Middleweight
+    title_fight: false
+    rounds: 3
+    section: Main card
+    odds: [1.148, 5.90]       # Abdul-Malik -675 / Stoltzfus +490
+  - fighter1: Edson Barboza
+    fighter2: Esteban Ribovics
+    weight_class: Lightweight
+    title_fight: false
+    rounds: 3
+    section: Main card
+    odds: [5.70, 1.154]       # Barboza +470 / Ribovics -650
+  # ---------------- Prelims (7pm ET) ----------------
+  - fighter1: Chidi Njokuani
+    fighter2: Joel Alvarez
+    weight_class: Welterweight
+    title_fight: false
+    rounds: 3
+    section: Preliminary card
+    odds: [1.328, 3.45]       # Njokuani -305 / Alvarez +245
+  - fighter1: Charles Johnson
+    fighter2: Eduardo Chapolin
+    # Contracted at a 130 lb catchweight: Chapolin took the fight on three
+    # days' notice and there was no time for a flyweight cut.
+    weight_class: Catch Weight
+    title_fight: false
+    rounds: 3
+    section: Preliminary card
+    odds: [1.820, 2.02]       # C. Johnson -122 / Chapolin +102
+  - fighter1: Donte Johnson
+    fighter2: Eric McConico
+    weight_class: Middleweight
+    title_fight: false
+    rounds: 3
+    section: Preliminary card
+    odds: [1.377, 3.15]       # D. Johnson -265 / McConico +215
+  - fighter1: Vicente Luque
+    fighter2: Tresean Gore
+    weight_class: Middleweight
+    title_fight: false
+    rounds: 3
+    section: Preliminary card
+    odds: [2.02, 1.820]       # Luque +102 / Gore -122
+  # ---------------- Early prelims (5pm ET) ----------------
+  - fighter1: Rafael Tobias
+    fighter2: Lucas Fernando
+    weight_class: Light Heavyweight
+    title_fight: false
+    rounds: 3
+    section: Early prelims
+    odds: [3.40, 1.336]       # Tobias +240 / Fernando -298
+  - fighter1: Neil Magny
+    fighter2: Ramiz Brahimaj
+    weight_class: Welterweight
+    title_fight: false
+    rounds: 3
+    section: Early prelims
+    odds: [2.14, 1.741]       # Magny +114 / Brahimaj -135
+  - fighter1: Jeremiah Wells
+    fighter2: Myktybek Orolbai
+    weight_class: Welterweight
+    title_fight: false
+    rounds: 3
+    section: Early prelims
+    odds: [7.75, 1.095]       # Wells +675 / Orolbai -1050
+# DEBUTANTS — no UFC history, so the skill model is weak on these two and
+# the debut/regional path carries them. Both were checked by hand rather
+# than assumed to be typos:
+#   Eduardo Chapolin (15-2), a.k.a. Eduardo Henrique da Silva. Two-time LFA
+#     flyweight champion, first overall pick on TUF 33. Replaced the injured
+#     Jose Ochoa on THREE DAYS' notice — the shortest notice on the card.
+#   Lucas Fernando (13-3). Reigning LFA light heavyweight champion, on a
+#     four-fight streak with back-to-back first-round knockouts.

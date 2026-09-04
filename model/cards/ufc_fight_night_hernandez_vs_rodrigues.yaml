@@ -1,0 +1,120 @@
+date: '2026-08-22'
+event: 'UFC Fight Night: Hernandez vs. Rodrigues'
+fights:
+- fighter1: Anthony Hernandez
+  fighter2: Gregory Rodrigues
+  weight_class: Middleweight
+  title_fight: false
+  rounds: 5
+  section: Main card
+  odds:
+  - 1.51
+  - 2.65
+- fighter1: Serghei Spivac
+  fighter2: Vitor Petrino
+  weight_class: Heavyweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 2.35
+  - 1.62
+- fighter1: Reinier de Ridder
+  fighter2: Roman Dolidze
+  weight_class: Light Heavyweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 1.25
+  - 4.09
+- fighter1: MarQuel Mederos
+  fighter2: Mason Jones
+  weight_class: Lightweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 3.7
+  - 1.29
+- fighter1: Carli Judice
+  fighter2: Jeisla Chaves
+  weight_class: Women's Flyweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 1.17
+  - 5.25
+- fighter1: Anthony Wint
+  fighter2: Terrance Chatman
+  weight_class: Heavyweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 1.1
+  - 7.5
+- fighter1: Jamall Emmers
+  fighter2: Lerryan Douglas
+  weight_class: Featherweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 4.1
+  - 1.25
+- fighter1: Shamil Gaziev
+  fighter2: Kennedy Nzechukwu
+  weight_class: Heavyweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.74
+  - 2.12
+- fighter1: Nasrat Haqparast
+  fighter2: Chris Padilla
+  weight_class: Lightweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.91
+  - 1.91
+- fighter1: Marcio Barbosa
+  fighter2: Ryan Kuse
+  weight_class: Featherweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.12
+  - 6.625
+- fighter1: Gauge Young
+  fighter2: Stan Dorsainvil
+  weight_class: Lightweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.61
+  - 2.39
+- fighter1: Jackson McVey
+  fighter2: Wes Schultz
+  weight_class: Middleweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.56
+  - 2.5
+- fighter1: Shanelle Dyer
+  fighter2: Elise Reed
+  weight_class: Women's Strawweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.12
+  - 6.75

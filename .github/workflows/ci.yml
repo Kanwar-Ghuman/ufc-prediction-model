@@ -1,5 +1,4 @@
-# CI: the leakage and symmetry tests are non-negotiable (PRD section 8).
-# Every test runs on synthetic data — no UFC data needed in CI.
+# Tests run on synthetic data; no UFC dumps are needed in CI.
 name: tests
 
 on:
@@ -8,8 +7,11 @@ on:
   pull_request:
 
 jobs:
-  test:
+  model:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: model
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
@@ -18,3 +20,19 @@ jobs:
       - run: uv sync
       - run: uv run ruff check src tests
       - run: uv run pytest -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build

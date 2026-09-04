@@ -1,0 +1,96 @@
+# UFC Fight Night: Gamrot vs. Salkilld (UFC Vegas 120)
+# Saturday 2026-08-08, Meta Apex, Enterprise, Nevada.
+# Bout order and sections from the user's confirmed listing; matchups
+# cross-checked against Wikipedia (identical 12 bouts). Name spellings are
+# the ufcstats ones where a fighter has UFC history ('Diego Ferreira', not
+# 'Carlos Diego Ferreira'), so predict.py doesn't have to rename them.
+#
+# ODDS PROVENANCE — read before trusting the market-aware numbers.
+# Decimal odds converted from MMA Odds Breaker's OPENING American lines
+# (mmaoddsbreaker.com/fight-odds/opening-odds/161207-...), except the main
+# event, which uses the current Salkilld -140 / Gamrot +120 line because
+# it had moved off its -110/-110 open. Every pair's overround lands in
+# 1.03-1.05, the normal bookmaker margin, which is the sanity check that
+# they were transcribed right. These are one book's opening numbers, not a
+# closing consensus — re-check before relying on any market-led pick.
+date: '2026-08-08'
+event: "UFC Fight Night: Gamrot vs. Salkilld"
+fights:
+  # ---------------- Main card ----------------
+  - fighter1: Mateusz Gamrot
+    fighter2: Quillan Salkilld
+    weight_class: Lightweight
+    rounds: 5
+    section: Main card
+    odds: [2.2, 1.714]        # Gamrot +120 / Salkilld -140  (current)
+  - fighter1: Billy Quarantillo
+    fighter2: Diego Ferreira
+    weight_class: Lightweight
+    rounds: 3
+    section: Main card
+    odds: [2.77, 1.488]       # Quarantillo +177 / Ferreira -205
+  - fighter1: Darren Elkins
+    fighter2: Yadier del Valle
+    weight_class: Featherweight
+    rounds: 3
+    section: Main card
+    odds: [3.63, 1.308]       # Elkins +263 / del Valle -325
+  - fighter1: Amanda Lemos
+    fighter2: Alexia Thainara
+    weight_class: Women's Strawweight
+    rounds: 3
+    section: Main card
+    odds: [3.45, 1.333]       # Lemos +245 / Thainara -300
+  - fighter1: Ty Miller
+    fighter2: Billy Ray Goff
+    weight_class: Welterweight
+    rounds: 3
+    section: Main card
+    odds: [1.25, 4.16]        # Miller -400 / Goff +316
+
+  # ------------- Preliminary card -------------
+  - fighter1: Steven Asplund
+    fighter2: Guilherme Pat
+    weight_class: Heavyweight
+    rounds: 3
+    section: Preliminary card
+    odds: [1.909, 1.909]      # Asplund -110 / Pat -110  (pick'em)
+  - fighter1: Diyar Nurgozhay
+    fighter2: Bruno Lopes
+    weight_class: Light Heavyweight
+    rounds: 3
+    section: Preliminary card
+    odds: [2.57, 1.556]       # Nurgozhay +157 / Lopes -180
+  # Wikipedia lists this fighter as 'José Luiz'; the card listing as
+  # 'José Montanha'. Sherdog files him as Jose Luiz, nickname 'Montanha'
+  # (fighter 398299, 6-1). No UFC history under any spelling — a debutant.
+  - fighter1: José Luiz Montanha
+    fighter2: Louie Sutherland
+    weight_class: Heavyweight
+    rounds: 3
+    section: Preliminary card
+    odds: [2.35, 1.645]       # Montanha +135 / Sutherland -155
+  - fighter1: Manoel Sousa
+    fighter2: Richie Miranda
+    weight_class: Lightweight
+    rounds: 3
+    section: Preliminary card
+    odds: [1.2, 4.83]         # Sousa -500 / Miranda +383
+  - fighter1: Miles Johns
+    fighter2: Gianni Vazquez
+    weight_class: Featherweight
+    rounds: 3
+    section: Preliminary card
+    odds: [1.752, 2.14]       # Johns -133 / Vazquez +114
+  - fighter1: Juliana Miller
+    fighter2: Ravena Oliveira
+    weight_class: Women's Flyweight
+    rounds: 3
+    section: Preliminary card
+    odds: [1.526, 2.65]       # Miller -190 / Oliveira +165
+  - fighter1: Giovanna Canuto
+    fighter2: Carol Foro
+    weight_class: Women's Strawweight
+    rounds: 3
+    section: Preliminary card
+    odds: [2.74, 1.5]         # Canuto +174 / Foro -200

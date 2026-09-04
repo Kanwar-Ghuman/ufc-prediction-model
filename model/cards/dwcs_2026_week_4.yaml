@@ -1,0 +1,66 @@
+# Dana White's Contender Series 2026: Week 4 (Season 10, Episode 4)
+# Tuesday 2026-09-01, Meta Apex, Las Vegas. Five fights, UFC contracts on the line.
+#
+# Contender Series, not a UFC card: all ten fighters are making their first
+# appearance under the UFC banner, so UFC-history features are missing on
+# BOTH corners of every bout. Since v3.2 the skill side is the fighters'
+# full regional records (Sherdog, resolved by the event page so the right
+# Brandon Holmes / Hunter Smith are scored) and the career-view features
+# learned from ~1,700 past UFC debutants. v3.3 adds regional Elo, a capped
+# dual-debut skill mix from those careers, and Tapology best-rank nudges.
+# Odds still do much of the work.
+#
+# Rankings and regions are Tapology best-rank / circuit labels as listed
+# on the event page 2026-09-01. Lower rank number is better.
+#
+# ODDS PROVENANCE — consensus of six books (Polymarket, Kalshi, FanDuel,
+# Caesars, BetRivers, BetWay) as listed on BestFightOdds, 2026-09-01
+# afternoon ET, averaged in implied probability and converted to decimal.
+# predict.py strips the vig.
+#
+# Sherdog event page (fighter identities):
+# https://www.sherdog.com/events/Dana-Whites-Contender-Series-Contender-Series-2026-Week-4-112630
+date: '2026-09-01'
+event: "Dana White's Contender Series 2026: Week 4"
+fights:
+  - fighter1: Adam Darby
+    fighter2: Patrick Rivera
+    weight_class: Welterweight
+    rounds: 3
+    section: Main event
+    title_fight: false
+    odds: [1.233, 4.27]       # Darby ~-430 / Rivera ~+327
+    ranking: [124, 91]
+    region: [Europe, North America]
+  - fighter1: Brandon Holmes
+    fighter2: Modestino Rodrigues
+    weight_class: Middleweight
+    rounds: 3
+    section: Main card
+    odds: [1.562, 2.46]       # Holmes ~-178 / Rodrigues ~+146
+    ranking: [67, 73]
+    region: [North America, South America]
+  - fighter1: Liam McCracken
+    fighter2: Silvestre Sanchez
+    weight_class: Lightweight
+    rounds: 3
+    section: Main card
+    odds: [1.769, 2.04]       # McCracken ~-130 / Sanchez ~+104
+    ranking: [124, 60]
+    region: [Europe, South America]
+  - fighter1: Charlie Cleveland
+    fighter2: Gabriel Lourenço
+    weight_class: Heavyweight
+    rounds: 3
+    section: Main card
+    odds: [1.450, 2.79]       # Cleveland ~-222 / Lourenço ~+179
+    ranking: [53, 21]
+    region: [North America, South America]
+  - fighter1: Adam Livingston
+    fighter2: Hunter Smith
+    weight_class: Lightweight
+    rounds: 3
+    section: Main card
+    odds: [1.518, 2.57]       # Livingston ~-193 / Smith ~+157
+    ranking: [139, 106]
+    region: [North America, North America]
