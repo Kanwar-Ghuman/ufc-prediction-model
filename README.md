@@ -4,8 +4,7 @@ Walk-forward pipeline that scores UFC bouts with calibrated win, method, and
 round probabilities. Skill models beat record/Elo baselines on a time-based
 holdout. They do not beat closing-line odds.
 
-Paper-trading lives in `octagon backtest` (simulation only). Nothing here
-places bets or is betting advice.
+Paper-trading lives in `octagon backtest`
 
 Two packages:
 
