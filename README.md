@@ -78,6 +78,14 @@ zero defensive rates. On the same 1,010 validation fights, accuracy rose from
 diagnostic improvement, not a new untouched-test result; its paired accuracy
 interval includes zero. Details: `model/reports/noche_2026_improvements.md`.
 
+September 17: the scorecard and the evaluation table graded the method call
+with a different rule than the card reported — they pooled KO and submission
+into "a finish" and resolved that first. Since KO is ~65% of finishes, a
+resolved finish nearly always resolved to KO, so the grader called KO on 48%
+of test-era fights that ended in KO 33% of the time. All three call sites now
+share `method.call_group`, a plain argmax. Test-era method accuracy 51.5% ->
+54.7%; a constant "decision" scores 51.8%. Winner probabilities are unchanged.
+
 Or `octagon day-before --card … --event …`. After the event,
 `octagon score-card --card …` grades the frozen file, not a refit.
 

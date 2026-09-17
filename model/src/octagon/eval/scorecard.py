@@ -11,7 +11,7 @@ import pandas as pd
 
 from octagon.config import resolve_path
 from octagon.eval import metrics
-from octagon.models import finish_round
+from octagon.models import finish_round, method
 from octagon.scraping.fighters import _same_person, _tokens
 
 GROUP = {"KO/TKO": "ko", "SUB": "sub", "U-DEC": "dec", "S-DEC": "dec", "M-DEC": "dec"}
@@ -194,18 +194,18 @@ def grade(conn, frame: pd.DataFrame, abstain: tuple[float, float]) -> dict:
 
 
 def called_method(joint: dict[str, float]) -> str:
-    """The method family the card called: finish vs decision first.
+    """The method family the card called: the likeliest of {ko, sub, dec}.
 
-    KO and submission split a finish's probability. Taking argmax over
-    {ko, sub, dec} therefore calls a decision whenever the finish mass is
-    split 35/20 against a 45% decision — which is how a night of knockouts
-    gets scored as 'said dec'. Ask 'does it finish?' first, then how.
+    This grades what `finish_round.select_outcome` reports, so the two must
+    agree on the rule. It also has to be plain argmax: for a 0-1 score on
+    calibrated probabilities that is the accuracy-maximising choice, and
+    nothing else is.
+
+    The rule itself lives in `method.call_group`, which documents why it is
+    a plain argmax and what the alternative cost.
     """
-    ko, sub, dec = (_marginal(joint, "ko"), _marginal(joint, "sub"),
-                    _marginal(joint, "dec"))
-    if ko + sub >= dec:
-        return "ko" if ko >= sub else "sub"
-    return "dec"
+    return method.call_group(_marginal(joint, "ko"), _marginal(joint, "sub"),
+                             _marginal(joint, "dec"))
 
 
 def _marginal(joint: dict[str, float], group: str) -> float:

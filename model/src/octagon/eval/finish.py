@@ -35,10 +35,7 @@ def report(df: pd.DataFrame, eval_df: pd.DataFrame, windows: list[tuple[str, str
                               for g in method.GROUPS}, index=p.index)
         if p_win is None:
             fight = fight / 2.0
-        called = np.where(
-            fight["ko"] + fight["sub"] >= fight["dec"],
-            np.where(fight["ko"] >= fight["sub"], "ko", "sub"),
-            "dec")
+        called = method.call_group(fight["ko"], fight["sub"], fight["dec"])
         m_rows.append((
             name, len(m_truth),
             method.how_log_loss(true_how, how),

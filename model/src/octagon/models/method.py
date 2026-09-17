@@ -159,6 +159,30 @@ def condition_on_win_prob(probs: pd.DataFrame, p_f1_wins: np.ndarray) -> pd.Data
     return out.fillna(0.0)
 
 
+def call_group(ko, sub, dec):
+    """Name the one method to call from {ko, sub, dec} marginals: the mode.
+
+    The card report, the scorecard and the evaluation table all have to ask
+    this, and they have to agree — otherwise a fight is reported one way and
+    graded another. Argmax is also the accuracy-maximising answer for a 0-1
+    score on calibrated probabilities.
+
+    Pooling KO and submission into 'a finish' and resolving that first is
+    the tempting alternative, on the grounds that argmax under-calls
+    finishes when the two split the finish mass. Measured on the validation
+    and test eras it was worse on both: KO is ~65% of finishes, so a
+    resolved finish nearly always resolved to KO, which called KO on 48% of
+    test-era fights that ended in KO 33% of the time. It scored 50.5% where
+    a constant 'decision' scores 49.9%; argmax scores 54.4%.
+
+    Accepts scalars or arrays and returns the matching shape.
+    """
+    ko, sub, dec = np.asarray(ko), np.asarray(sub), np.asarray(dec)
+    out = np.where((dec >= ko) & (dec >= sub), "dec",
+                   np.where(ko >= sub, "ko", "sub"))
+    return str(out) if out.ndim == 0 else out
+
+
 def winner_how(probs: pd.DataFrame, truth: pd.DataFrame) -> pd.DataFrame:
     """The winner's three how-probabilities, for scoring the HOW model."""
     label = truth["label"].to_numpy()

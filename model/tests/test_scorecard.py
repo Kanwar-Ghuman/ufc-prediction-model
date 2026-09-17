@@ -173,11 +173,36 @@ def test_aggregates_count_winners_methods_and_rounds():
     assert a["log_loss"] > 0.0
 
 
-def test_a_split_finish_is_still_called_a_finish():
-    """35% KO + 25% sub outvotes 40% decision, even though decision is the mode."""
+def test_a_split_finish_does_not_outvote_the_modal_decision():
+    """35% KO + 25% sub does NOT beat a 40% decision: the call is the mode.
+
+    Pooling KO and submission into 'a finish' and then resolving it was
+    measured to be worse than argmax on both the validation and test eras,
+    because KO takes ~65% of finishes and so swallowed almost every
+    resolved finish. See `scorecard.called_method`.
+    """
     conn = _conn([("Alice", "Bob", "fighter1", "KO/TKO", 1)])
     graded = scorecard.grade(conn, _frozen(
         ("Alice", "Bob", 0.70, {"f1_ko_r1": 0.35, "f1_sub_r1": 0.25, "f1_dec": 0.40}),
     ), (0.45, 0.55))
-    assert graded["fights"][0]["method_called"] == "ko"
-    assert graded["fights"][0]["method_correct"] is True
+    assert graded["fights"][0]["method_called"] == "dec"
+    assert graded["fights"][0]["method_correct"] is False
+
+
+def test_grading_calls_the_same_method_the_card_reported():
+    """The scorecard must grade the rule `select_outcome` printed.
+
+    These are two code paths answering one question. When they disagree a
+    card can report 'by decision' and then be graded as having said KO.
+    """
+    for cells in (
+        {"f1_ko_r1": 0.35, "f1_sub_r1": 0.25, "f1_dec": 0.40},
+        {"f1_ko_r1": 0.50, "f1_sub_r1": 0.10, "f1_dec": 0.40},
+        {"f1_ko_r1": 0.10, "f1_sub_r2": 0.55, "f1_dec": 0.35},
+    ):
+        row = dict.fromkeys(finish_round.outcome_columns(), 0.0)
+        row.update(cells)
+        series = pd.Series(row)
+        reported = finish_round.select_outcome(series, "f1")["method"]
+        graded = scorecard.called_method(row)
+        assert graded == {"KO/TKO": "ko", "SUB": "sub", "DEC": "dec"}[reported]
