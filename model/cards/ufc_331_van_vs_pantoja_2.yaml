@@ -1,0 +1,107 @@
+date: '2026-09-19'
+event: 'UFC 331: Van vs. Pantoja 2'
+fights:
+- fighter1: Joshua Van
+  fighter2: Alexandre Pantoja
+  weight_class: Flyweight
+  title_fight: true
+  rounds: 5
+  section: Main card
+  odds:
+  - 1.74
+  - 2.13
+- fighter1: Arman Tsarukyan
+  fighter2: Mauricio Ruffy
+  weight_class: Lightweight
+  title_fight: false
+  rounds: 5
+  section: Main card
+  odds:
+  - 1.29
+  - 3.65
+- fighter1: Patricio Freire
+  fighter2: Dooho Choi
+  weight_class: Featherweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds: null
+- fighter1: Gable Steveson
+  fighter2: Sean Sharaf
+  weight_class: Heavyweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 1.04
+  - 11.75
+- fighter1: Alonzo Menifield
+  fighter2: Iwo Baraniewski
+  weight_class: Light Heavyweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 3.005
+  - 1.4
+- fighter1: Marlon Vera
+  fighter2: Charles Jourdain
+  weight_class: Bantamweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 2.825
+  - 1.44
+- fighter1: Tai Tuivasa
+  fighter2: Robelis Despaigne
+  weight_class: Heavyweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 6.06
+  - 1.13
+- fighter1: Michael Aswell
+  fighter2: JooSang Yoo
+  weight_class: Featherweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 2.945
+  - 1.425
+- fighter1: Ryan Gandra
+  fighter2: Ozzy Diaz
+  weight_class: Middleweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds: null
+- fighter1: Edmen Shahbazyan
+  fighter2: Brunno Ferreira
+  weight_class: Middleweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.56
+  - 2.45
+- fighter1: Casey O'Neill
+  fighter2: Eduarda Moura
+  weight_class: Women's Flyweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.43
+  - 2.855
+- fighter1: Giga Chikadze
+  fighter2: Joanderson Brito
+  weight_class: Featherweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 4.145
+  - 1.24
