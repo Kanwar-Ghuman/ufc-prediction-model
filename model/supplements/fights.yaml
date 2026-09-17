@@ -1,0 +1,14 @@
+- id: rongzhu-victor-martinez-2026-05-28
+  event: Road to UFC Season 5 Opening Rounds Day 1
+  date: '2026-05-28'
+  fighter1: Rongzhu
+  fighter2: Victor Martinez
+  winner: fighter1
+  method: KO/TKO
+  weight_class: Lightweight
+  scheduled_rounds: 3
+  end_round: 1
+  end_time_s: 70
+  source_url: https://www.ufc.com/news/road-to-ufc-season-5-results-scorecards-opening-rounds-day-1
+  verified_on: '2026-09-11'
+  note: Official UFC featured bout omitted from the Greco feed. Detailed fight stats unavailable.

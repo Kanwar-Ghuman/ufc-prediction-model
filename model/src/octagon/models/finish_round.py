@@ -283,6 +283,53 @@ def ending_summary(joint: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(out, index=joint.index)
 
 
+def select_outcome(joint_row, corner: str) -> dict:
+    """Choose a coherent method first, then a round conditional on it.
+
+    Taking the largest cell from the full method-by-round grid can call KO
+    merely because its timing distribution is more concentrated, even when
+    the *total* submission probability is larger.  The prediction question
+    is hierarchical: first KO/submission/decision, then (for a finish) the
+    most likely round given that method.
+    """
+    if corner not in ("f1", "f2"):
+        raise ValueError("corner must be 'f1' or 'f2'")
+
+    masses = {
+        "ko": sum(float(joint_row[f"{corner}_ko_r{r}"]) for r in ROUNDS),
+        "sub": sum(float(joint_row[f"{corner}_sub_r{r}"]) for r in ROUNDS),
+        "dec": float(joint_row[f"{corner}_dec"]),
+    }
+    group = max(masses, key=masses.get)
+    method_probability = masses[group]
+    if group == "dec":
+        return {
+            "column": f"{corner}_dec",
+            "method": "DEC",
+            "round": None,
+            "method_probability": method_probability,
+            "round_probability": None,
+            "exact_probability": method_probability,
+        }
+
+    round_values = {
+        r: float(joint_row[f"{corner}_{group}_r{r}"]) for r in ROUNDS
+    }
+    round_number = max(round_values, key=round_values.get)
+    exact_probability = round_values[round_number]
+    conditional_round = (
+        exact_probability / method_probability if method_probability > 0 else 0.0
+    )
+    return {
+        "column": f"{corner}_{group}_r{round_number}",
+        "method": "KO/TKO" if group == "ko" else "SUB",
+        "round": round_number,
+        "method_probability": method_probability,
+        "round_probability": conditional_round,
+        "exact_probability": exact_probability,
+    }
+
+
 def describe(column: str, f1: str, f2: str) -> str:
     """'f1_ko_r2' -> 'Jon Jones by KO/TKO, round 2'."""
     corner, rest = column.split("_", 1)

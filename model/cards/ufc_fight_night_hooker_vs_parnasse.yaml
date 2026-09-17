@@ -1,0 +1,129 @@
+date: '2026-09-05'
+event: 'UFC Fight Night: Hooker vs. Parnasse'
+fights:
+- fighter1: Salahdine Parnasse
+  fighter2: Dan Hooker
+  weight_class: Lightweight
+  title_fight: false
+  rounds: 5
+  section: Main card
+  odds:
+  - 1.17
+  - 5.4
+- fighter1: Fares Ziam
+  fighter2: Axel Sola
+  weight_class: Lightweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 1.655
+  - 2.29
+- fighter1: Michael Page
+  fighter2: Nursulton Ruziboev
+  weight_class: Middleweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 1.57
+  - 2.47
+- fighter1: Punahele Soriano
+  fighter2: Daniil Donchenko
+  weight_class: Welterweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 2.95
+  - 1.43
+- fighter1: Kurtis Campbell
+  fighter2: Trevor Peek
+  weight_class: Featherweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 1.25
+  - 4.1
+- fighter1: Losene Keita
+  fighter2: Muhammad Naimov
+  weight_class: Featherweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 1.255
+  - 4.045
+- fighter1: Morgan Charriere
+  fighter2: Felipe Lima
+  weight_class: Featherweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 2.68
+  - 1.5
+- fighter1: Mario Pinto
+  fighter2: Ryan Spann
+  weight_class: Heavyweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.3
+  - 3.6
+- fighter1: Oumar Sy
+  fighter2: Modestas Bukauskas
+  weight_class: Light Heavyweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.43
+  - 2.9
+- fighter1: Nathaniel Wood
+  fighter2: Pavel Andrusca
+  weight_class: Featherweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.33
+  - 3.4
+- fighter1: Fabia Sintes
+  fighter2: Michael Aljarouj
+  weight_class: Flyweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 2.02
+  - 1.82
+- fighter1: Nora Cornolle
+  fighter2: Klaudia Sygula
+  weight_class: Women's Bantamweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.95
+  - 1.87
+- fighter1: Luis Felipe Dias
+  fighter2: Matthieu Duclos
+  weight_class: Middleweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.95
+  - 1.87
+- fighter1: Delphine Benouaich
+  fighter2: Sofia Montenegro
+  weight_class: Women's Strawweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.69
+  - 2.22

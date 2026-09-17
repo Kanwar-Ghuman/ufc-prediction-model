@@ -41,8 +41,11 @@ def form_snapshot(
             return None
         scores = []
         for f in window:
-            sign = 1.0 if f.result == "win" else -1.0
-            scores.append(sign * (f.opp_elo_pre / 1500.0))
+            expected = 1.0 / (1.0 + 10.0 ** (
+                (f.opp_elo_pre - f.own_elo_pre) / 400.0))
+            # Outperforming pre-fight expectations is positive form. Losing
+            # to an elite opponent should hurt LESS than losing to a novice.
+            scores.append(2.0 * (float(f.result == "win") - expected))
         return sum(scores) / len(scores)
 
     vs: dict[str, list[int]] = defaultdict(lambda: [0, 0])  # wins, n
@@ -168,7 +171,12 @@ def _archetype(row: dict, prefix: str) -> str | None:
             "grappler": _num(row, f"{prefix}_sub15_l5") or 0.0,
             "pressure": _num(row, f"{prefix}_ctrl_pct_l5") or 0.0,
         }
-    return max(scores, key=scores.get)
+    ordered = sorted(scores, key=scores.get, reverse=True)
+    # Saturated scores can tie (a busy wrestler is also a busy striker).
+    # Do not invent a dominant style from dictionary insertion order.
+    if abs(scores[ordered[0]] - scores[ordered[1]]) < 1e-9:
+        return None
+    return ordered[0]
 
 
 def _form_word(value: float) -> str:
@@ -193,11 +201,11 @@ def research_brief(row: dict, f1: str, f2: str) -> list[str]:
     slpm1, slpm2 = _num(row, "f1_slpm_l5"), _num(row, "f2_slpm_l5")
     td1, td2 = _num(row, "f1_td15_l5"), _num(row, "f2_td15_l5")
     tdd1, tdd2 = _num(row, "f1_td_def_l5"), _num(row, "f2_td_def_l5")
-    if td1 is not None and tdd2 is not None and td1 >= 2.0 and tdd2 < 0.6:
+    if td1 is not None and tdd2 is not None and td1 >= 2.0:
         lines.append(
             f"Wrestling contrast: {f1} lands {td1:.1f} takedowns/15 into "
             f"{f2}'s {tdd2:.0%} TDD.")
-    elif td2 is not None and tdd1 is not None and td2 >= 2.0 and tdd1 < 0.6:
+    elif td2 is not None and tdd1 is not None and td2 >= 2.0:
         lines.append(
             f"Wrestling contrast: {f2} lands {td2:.1f} takedowns/15 into "
             f"{f1}'s {tdd1:.0%} TDD.")
@@ -213,7 +221,7 @@ def research_brief(row: dict, f1: str, f2: str) -> list[str]:
     if form1 is not None and form2 is not None and abs(form1 - form2) >= 0.2:
         hotter = f1 if form1 > form2 else f2
         form_bits.append(
-            f"{hotter} holds the quality-weighted form edge "
+            f"{hotter} holds the pre-fight-expectation-adjusted form edge "
             f"({_form_word(form1)} vs {_form_word(form2)} over the last 5)")
     last_bits = []
     if last1 is not None:

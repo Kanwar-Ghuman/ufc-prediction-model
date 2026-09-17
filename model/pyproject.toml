@@ -2,6 +2,7 @@
 name = "octagon"
 version = "0.1.0"
 description = "UFC fight outcome prediction with calibrated probabilities."
+license = "MIT"
 requires-python = ">=3.11"
 dependencies = [
     "pandas>=2.2",

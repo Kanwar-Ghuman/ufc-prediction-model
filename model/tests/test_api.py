@@ -207,6 +207,33 @@ def test_card_bouts_come_back_in_the_order_they_were_announced(client):
     assert [b["section"] for b in bouts] == ["Prelims", "Main card"]
 
 
+def test_card_method_call_uses_marginal_method_then_conditional_round(client):
+    """A concentrated KO round must not outrank a larger SUB method total."""
+    api, root = client
+    _write_card(root, "x", "2999-01-01", sections=("Main card",))
+    path = root / "reports" / "card_predictions_x.parquet"
+    frame = pd.read_parquet(path)
+    from octagon.models import finish_round
+
+    for column in finish_round.outcome_columns():
+        frame[column] = 0.0
+    frame.loc[0, ["f1_ko_r1", "f1_sub_r1", "f1_sub_r2", "f1_sub_r3",
+                  "f1_dec", "f2_dec"]] = [0.20, 0.10, 0.15, 0.11, 0.14, 0.30]
+    frame.to_parquet(path, index=False)
+    findings.reset_cache()
+
+    bout = api.get("/api/cards/x").json()["bouts"][0]
+    assert bout["statement"] == "Ann Alpha 0 by submission in round 2"
+    assert bout["top_outcome"] == {
+        "label": "by submission in round 2",
+        "probability": pytest.approx(0.15),
+        "method": "SUB",
+        "round": 2,
+        "method_probability": pytest.approx(0.36),
+        "round_probability": pytest.approx(0.15 / 0.36),
+    }
+
+
 def test_cards_predicted_before_v27_still_serve(client):
     """Older frozen files have no section, order or drivers column."""
     api, root = client
@@ -218,6 +245,23 @@ def test_cards_predicted_before_v27_still_serve(client):
 
     bout = api.get("/api/cards/x").json()["bouts"][0]
     assert bout["section"] is None and bout["drivers"] == []
+
+
+def test_frozen_call_all_policy_serves_a_close_fight_as_a_pick(client):
+    api, root = client
+    _write_card(root, "x", "2999-01-01", sections=("Main card",))
+    path = root / "reports" / "card_predictions_x.parquet"
+    frame = pd.read_parquet(path)
+    frame["p_f1_wins"] = 0.51
+    frame["call_all"] = True
+    frame["prediction_mode"] = "skill_only"
+    frame.to_parquet(path, index=False)
+    findings.reset_cache()
+    bout = api.get("/api/cards/x").json()["bouts"][0]
+    assert bout["called"] is True
+    assert bout["statement"] is not None
+    assert bout["confidence"] == 0.51
+    assert bout["prediction_mode"] == "skill_only"
 
 
 def test_fighters_without_media_still_render(client):

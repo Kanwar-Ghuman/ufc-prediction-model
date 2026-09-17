@@ -46,6 +46,29 @@ def test_match_allows_short_given_names():
     assert matched == (1.75, 2.10)
 
 
+def test_match_allows_book_added_middle_nickname():
+    events = [_event("Michael Venom Page", "Nursulton Ruziboev",
+                     "2026-09-05T20:45:00Z", [(1.60, 2.40)])]
+    matched = match_bout("Michael Page", "Nursulton Ruziboev",
+                         "2026-09-05", events)
+    assert matched == (1.60, 2.40)
+
+
+def test_match_allows_one_letter_transliteration_with_shared_surname():
+    events = [_event("Michael Page", "Nursultan Ruziboev",
+                     "2026-09-05T20:45:00Z", [(1.60, 2.40)])]
+    matched = match_bout("Michael Page", "Nursulton Ruziboev",
+                         "2026-09-05", events)
+    assert matched == (1.60, 2.40)
+
+
+def test_match_rejects_shared_first_name_only():
+    events = [_event("Michael Johnson", "Nursulton Ruziboev",
+                     "2026-09-05T20:45:00Z", [(1.60, 2.40)])]
+    assert match_bout("Michael Page", "Nursulton Ruziboev",
+                      "2026-09-05", events) is None
+
+
 def test_unmatched_bout_stays_empty():
     events = [_event("A", "B", "2026-01-01T00:00:00Z", [(1.8, 2.0)])]
     assert match_bout("C", "D", "2026-01-01", events) is None

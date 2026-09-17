@@ -59,10 +59,16 @@ def _event_names(event: dict) -> set[str]:
 
 
 def names_compatible(a: str, b: str) -> bool:
-    """True when two listings are the same person, including Stan/Stanley.
+    """True when two listings are the same person, including common aliases.
 
     Tokens are compared as a bag (so 'Zhang Weili' matches 'Weili Zhang').
-    If the bags differ by one token, a prefix given-name is allowed.
+    A single extra token is accepted only when the shorter listing already
+    supplies at least two exact tokens.  This covers book-added nicknames and
+    middle names (``Michael Page`` / ``Michael Venom Page``) without treating
+    two fighters who merely share a first or last name as the same person.
+    If equally-sized bags differ by one token, a prefix given-name or a
+    one-letter transliteration variant is allowed when another name token
+    matches exactly (``Nursulton Ruziboev`` / ``Nursultan Ruziboev``).
     """
     if not a or not b:
         return False
@@ -71,13 +77,22 @@ def names_compatible(a: str, b: str) -> bool:
         return False
     if left == right:
         return True
+    shorter, longer = (left, right) if len(left) < len(right) else (right, left)
+    if len(shorter) >= 2 and len(longer) == len(shorter) + 1 and shorter < longer:
+        return True
     if len(left) != len(right):
         return False
     only_a, only_b = left - right, right - left
     if len(only_a) != 1 or len(only_b) != 1:
         return False
     given_a, given_b = only_a.pop(), only_b.pop()
-    return given_a.startswith(given_b) or given_b.startswith(given_a)
+    if given_a.startswith(given_b) or given_b.startswith(given_a):
+        return True
+    shared = left & right
+    return (bool(shared) and len(given_a) == len(given_b)
+            and len(given_a) >= 4
+            and sum(a_char != b_char
+                    for a_char, b_char in zip(given_a, given_b, strict=True)) == 1)
 
 
 def _pair_event(fighter1: str, fighter2: str, event: dict) -> bool:

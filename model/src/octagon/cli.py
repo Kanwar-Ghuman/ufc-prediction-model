@@ -32,11 +32,6 @@ def cmd_refresh_data(args: argparse.Namespace, cfg: dict) -> None:
         print(f"  downloaded {name} ({len(resp.content) // 1024} KB)")
 
     cmd_build_db(args, cfg)
-    # build-db drops regional_fights; reload from the on-disk Sherdog cache.
-    sherdog_cache = resolve_path(cfg["data"]["sherdog_cache"])
-    if sherdog_cache.exists():
-        print("\n=== reload regional records (survives DB rebuild) ===")
-        cmd_load_regional(args, cfg)
     cmd_build_features(args, cfg)
     print("\nRe-running the leakage audit on the fresh build:")
     cmd_audit(args, cfg)
@@ -45,6 +40,7 @@ def cmd_refresh_data(args: argparse.Namespace, cfg: dict) -> None:
 
 
 def cmd_build_db(args: argparse.Namespace, cfg: dict) -> None:
+    """Rebuild canonical tables and restore the cached regional histories."""
     from octagon.db.build import build_db
 
     db_path = resolve_path(cfg["data"]["db_path"])
@@ -53,9 +49,23 @@ def cmd_build_db(args: argparse.Namespace, cfg: dict) -> None:
         greco_dir=resolve_path(cfg["data"]["greco_dir"]),
         bootstrap_dir=resolve_path(cfg["data"]["bootstrap_dir"]),
     )
+    from octagon.db.schema import connect
+    from octagon.db.supplemental import load_supplemental
+
+    with connect(db_path) as conn:
+        counts["supplemental_fights"] = load_supplemental(
+            conn, resolve_path(cfg["data"].get("supplemental_path", "supplements/fights.yaml")))
     print(f"Rebuilt {db_path} from raw sources:")
     for table, n in counts.items():
         print(f"  {table:>18}: {n}")
+
+    # Rebuilding drops every table, including regional_fights. Restoring the
+    # point-in-time Sherdog cache here prevents a perfectly valid-looking
+    # `build-db; build-features` run from silently training without debut data.
+    sherdog_cache = resolve_path(cfg["data"]["sherdog_cache"])
+    if sherdog_cache.exists():
+        print("\nReloading cached regional records:")
+        cmd_load_regional(args, cfg)
 
 
 def cmd_build_features(args: argparse.Namespace, cfg: dict) -> None:
@@ -222,6 +232,9 @@ def cmd_train(args: argparse.Namespace, cfg: dict) -> None:
         artifacts / "calibration_train_oos.png")
     final_model = gbm.fit(df[df["date"] <= through], params, seed=seed,
                           include_raw=include_raw, n_seeds=n_seeds)
+    from octagon.lineage import feature_fingerprint
+
+    feature_list = list(gbm.feature_frame(df, include_raw=include_raw).columns)
     joblib.dump({
         "params": params,
         "cv_log_loss": cv_loss,
@@ -239,14 +252,19 @@ def cmd_train(args: argparse.Namespace, cfg: dict) -> None:
             (cfg.get("model") or {}).get("research_weight") or 0.0),
         "weight_round_base": weight_round_base,
         "weight_method_base": weight_method_base,
-        "feature_list": list(gbm.feature_frame(df, include_raw=include_raw).columns),
+        "feature_list": feature_list,
+        "feature_fingerprint": feature_fingerprint(df, through, include_raw),
+        "feature_fingerprint_version": 1,
         "splits": dict(cfg["splits"]),
         "through": through,
         "seed": seed,
         "n_trials": (reused.get("n_trials") if reused is not None else args.trials),
         "params_reused": reused is not None,
         "debut_params": debut_params,
-        "debut_model": debut_model,
+        # The estimator itself would be stale as soon as new fights arrive.
+        # Prediction refits it on current point-in-time history when enabled.
+        "debut_model": None,
+        "debut_enabled": debut_model is not None,
         "debut_stack": debut_stack_params,
     }, artifacts / "gbm.joblib")
     print("Saved artifacts/gbm.joblib + calibration_train_oos.png")

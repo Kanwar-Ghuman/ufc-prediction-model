@@ -1,0 +1,69 @@
+event: 'Noche UFC: Silva vs. Delgado'
+date: '2026-09-12'
+source: User card screenshots, checked against UFC September 7 fight preview
+fights:
+- fighter1: Jean Silva
+  fighter2: Jose Delgado
+  weight_class: Featherweight
+  rounds: 5
+  section: Main card
+- fighter1: Brandon Moreno
+  fighter2: Joseph Morales
+  weight_class: Flyweight
+  rounds: 3
+  section: Main card
+- fighter1: Tommy McMillen
+  fighter2: Marwan Rahiki
+  weight_class: Featherweight
+  rounds: 3
+  section: Main card
+- fighter1: Manon Fiorot
+  fighter2: Alexa Grasso
+  weight_class: Women's Flyweight
+  rounds: 3
+  section: Main card
+- fighter1: Waldo Cortes-Acosta
+  fighter2: Curtis Blaydes
+  weight_class: Heavyweight
+  rounds: 3
+  section: Main card
+- fighter1: David Martinez
+  fighter2: Dan Ige
+  weight_class: Bantamweight
+  rounds: 3
+  section: Main card
+- fighter1: Tim Elliott
+  fighter2: Edgar Chairez
+  weight_class: Catch Weight
+  rounds: 3
+  section: Preliminary card
+- fighter1: Ignacio Bahamondes
+  fighter2: Muslim Salikhov
+  weight_class: Welterweight
+  rounds: 3
+  section: Preliminary card
+- fighter1: Yousri Belgaroui
+  fighter2: Djorden Santos
+  weight_class: Middleweight
+  rounds: 3
+  section: Preliminary card
+- fighter1: Drakkar Klose
+  fighter2: Tommy Gantt
+  weight_class: Lightweight
+  rounds: 3
+  section: Preliminary card
+- fighter1: Rafa Garcia
+  fighter2: Rongzhu
+  weight_class: Lightweight
+  rounds: 3
+  section: Preliminary card
+- fighter1: Jessie Rosas
+  fighter2: Sean King
+  weight_class: Featherweight
+  rounds: 3
+  section: Preliminary card
+- fighter1: JJ Aldrich
+  fighter2: Regina Tarin
+  weight_class: Women's Flyweight
+  rounds: 3
+  section: Preliminary card

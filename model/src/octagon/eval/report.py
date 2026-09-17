@@ -69,7 +69,7 @@ def evaluate_split(df: pd.DataFrame, train_end: str, valid_end: str,
     ).loc[eval_df.index].to_numpy()
     add("logistic regression (walk-forward)", lr_pred)
 
-    gbm_cal_pred = blend_pred = None
+    gbm_cal_pred = blend_pred = shipped_pred = None
     if artifact is not None:
         from octagon.models import calibration, ensemble, gbm
 
@@ -122,6 +122,7 @@ def evaluate_split(df: pd.DataFrame, train_end: str, valid_end: str,
                      f"{n_trap} market-trap abstains")
             add("shipped (stack + trap, priced subset)", shipped, mask=priced,
                 note="same fights as market row")
+            shipped_pred = shipped
 
     finish_section = ""
     if artifact_path.exists():
@@ -149,6 +150,8 @@ def evaluate_split(df: pd.DataFrame, train_end: str, valid_end: str,
         pred_frame["p_gbm_cal"] = gbm_cal_pred
     if blend_pred is not None:
         pred_frame["p_blend"] = blend_pred
+    if shipped_pred is not None:
+        pred_frame["p_shipped"] = shipped_pred
     pred_frame.to_parquet(reports_dir / f"predictions_{split}.parquet", index=False)
 
     final_fit = logistic.fit(df[df["date"] <= lo])

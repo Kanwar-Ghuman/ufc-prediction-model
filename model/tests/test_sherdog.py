@@ -54,6 +54,22 @@ def test_alias_finds_the_fighter_sherdog_files_under_a_formal_name():
     assert url == "https://www.sherdog.com/fighter/Vlastislav-Cepo-330615"
 
 
+def test_ufc_shortened_first_name_finds_verified_sherdog_profile():
+    """The UFC bills Muhammad Naimov; Sherdog files Muhammadjon Naimov."""
+    session = _FakeSession([_hit("Muhammadjon", "Naimov", 228381)])
+    url = sherdog._search_sherdog("Muhammad Naimov", session)
+    assert session.queries == ["Muhammadjon Naimov"]
+    assert url == "https://www.sherdog.com/fighter/Muhammadjon-Naimov-228381"
+
+
+def test_reginaldo_junior_alias_finds_sherdog_legal_name():
+    """UFC bills 'Reginaldo Junior'; Sherdog files 'Reginaldo Geraldo Jr'."""
+    session = _FakeSession([_hit("Reginaldo", "Geraldo Jr", 412001)])
+    url = sherdog._search_sherdog("Reginaldo Junior", session)
+    assert session.queries == ["Reginaldo Geraldo Jr"]
+    assert url == "https://www.sherdog.com/fighter/Reginaldo-Geraldo Jr-412001"
+
+
 def _nick_hit(first, last, nickname, fighter_id):
     return {"source": "Fighter", "firstname": first, "lastname": last,
             "nickname": nickname,

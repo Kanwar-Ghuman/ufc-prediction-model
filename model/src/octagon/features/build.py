@@ -53,6 +53,7 @@ class PastFight:
     opp_elo_pre: float = 1500.0  # opponent's Elo entering that fight (strength of schedule)
     opponent: str | None = None  # name, for rematches and common opponents
     opp_style: dict | None = None  # opponent's archetype scores entering that fight
+    own_elo_pre: float = 1500.0  # own rating before this result, never today's rating
 
 
 @dataclass
@@ -460,7 +461,8 @@ def build_feature_rows(
                 date=on_date, result=result, method=bout.method,
                 end_round=bout.end_round, duration_s=bout.duration_s,
                 stats=own, opp_stats=opp, opp_elo_pre=opp_snap["elo"],
-                opponent=opp_name, opp_style=_style_scores(opp_snap)))
+                opponent=opp_name, opp_style=_style_scores(opp_snap),
+                own_elo_pre=elo.get(name)))
         if bout.winner != "nc":  # nothing was decided in a no-contest
             # Histories were just appended, so "prior fights" is length - 1.
             k1 = experience_multiplier(len(histories[bout.fighter1].fights) - 1,
@@ -574,10 +576,34 @@ def load_bouts(conn: sqlite3.Connection) -> list[Bout]:
 
 def load_tott(conn: sqlite3.Connection) -> dict[str, dict]:
     """Tale-of-the-tape by name. Shared names map to None rather than guessing."""
+    from octagon.db.parsing import normalize_name
+
     by_name: dict[str, list[dict]] = {}
-    for row in conn.execute("SELECT name, height_cm, reach_cm, stance, dob FROM fighters"):
+    for row in conn.execute("SELECT uid, name, height_cm, reach_cm, stance, dob FROM fighters"):
         by_name.setdefault(row["name"], []).append(dict(row))
-    return {name: rows[0] for name, rows in by_name.items() if len(rows) == 1}
+    profiles = {name: rows[0] for name, rows in by_name.items() if len(rows) == 1}
+    # Match punctuation/accents only when the normalized profile is unique.
+    # This joins fight-result "Waldo Cortes Acosta" to "Waldo Cortes-Acosta".
+    normalized: dict[str, list[dict]] = {}
+    for rows in by_name.values():
+        for row in rows:
+            normalized.setdefault(normalize_name(row["name"]), []).append(row)
+    for row in conn.execute("SELECT fighter1, fighter2 FROM fights"):
+        for name in row:
+            candidates = normalized.get(normalize_name(name), [])
+            if name not in profiles and len(candidates) == 1:
+                profiles[name] = dict(candidates[0], name=name)
+    # Verified UFC athlete, not the same-named 1977-born regional fighter:
+    # https://ufcstats.com/fighter-details/52ef95b5860fb28c
+    for row in by_name.get("Jean Silva", []):
+        if row["uid"] == "52ef95b5860fb28c":
+            profiles["Jean Silva"] = row
+    # UFC explicitly bills Tarin under this profile slug. Fight-result CSVs
+    # use Tarin, while the profile CSV still uses Malpica Rivera.
+    # https://www.ufc.com/athlete/regina-malpica-rivera
+    if "Regina Tarin" not in by_name and "Regina Malpica Rivera" in profiles:
+        profiles["Regina Tarin"] = dict(profiles["Regina Malpica Rivera"], name="Regina Tarin")
+    return profiles
 
 
 def build_features(conn: sqlite3.Connection, elo_k: float, seed: int,

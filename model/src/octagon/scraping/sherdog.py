@@ -45,6 +45,9 @@ CRAWL_DELAY = 0.5
 # Sherdog's own event listing for the bout in question, keyed by
 # normalize_name so accents and word order don't matter.
 SHERDOG_ALIASES = {
+    # Same Minev/Livingston opponents as UFC's Tommy Gantt profile:
+    # https://www.sherdog.com/fighter/Thomas-Gantt-428202
+    "gantt tommy": "Thomas Gantt",
     # Sherdog's UFC Fight Night 283 card lists this man, 14-3, opposite
     # Gilbert Urbina: https://www.sherdog.com/fighter/Vlastislav-Cepo-330615
     "cepo vlasto": "Vlastislav Cepo",
@@ -54,6 +57,14 @@ SHERDOG_ALIASES = {
     "aoriqileng": "Qileng Aori",
     "sumudaerji": "Su Mudaerji",
     "de hector santiago sousa": "Hector Santiago",
+    # UFC bills him as Muhammad Naimov; Sherdog uses his legal first name and
+    # the UFC Fight Night 287 event page links this profile opposite Losene
+    # Keita: https://www.sherdog.com/fighter/Muhammadjon-Naimov-228381
+    "muhammad naimov": "Muhammadjon Naimov",
+    # UFC / Tapology bill him as Reginaldo Junior; Sherdog files the legal
+    # middle name. DWCS 2026 Week 5 event page:
+    # https://www.sherdog.com/events/Dana-Whites-Contender-Series-Contender-Series-2026-Week-5-112631
+    "junior reginaldo": "Reginaldo Geraldo Jr",
 }
 
 

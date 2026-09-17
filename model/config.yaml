@@ -41,6 +41,11 @@ model:
   # 0.55 gives veterans (8+ UFC bouts each) a majority-skill vote. Debuts stay 0.
   research_weight: 0.55
 
+# Skill-only predictions are unaffected by odds, ranking nudges or sentiment.
+prediction:
+  mode: skill_only
+  call_all: true
+
 elo:
   initial_rating: 1500.0
   # Chosen on train-era fights only via octagon.features.elo.select_k.

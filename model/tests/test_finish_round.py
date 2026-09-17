@@ -201,6 +201,35 @@ def test_describe_reads_as_english():
     assert finish_round.describe("f2_dec", "Jones", "Gane") == "Gane by decision"
 
 
+def test_select_outcome_chooses_marginal_method_before_conditional_round():
+    """Three smaller SUB cells must beat one concentrated but smaller KO mass."""
+    row = dict.fromkeys(finish_round.outcome_columns(), 0.0)
+    row.update({
+        "f1_ko_r1": 0.20,
+        "f1_sub_r1": 0.12,
+        "f1_sub_r2": 0.12,
+        "f1_sub_r3": 0.12,
+        "f1_dec": 0.14,
+    })
+    selected = finish_round.select_outcome(pd.Series(row), "f1")
+    assert selected["column"] == "f1_sub_r1"
+    assert selected["method"] == "SUB"
+    assert selected["round"] == 1
+    assert selected["method_probability"] == pytest.approx(0.36)
+    assert selected["round_probability"] == pytest.approx(1 / 3)
+    assert selected["exact_probability"] == pytest.approx(0.12)
+
+
+def test_select_outcome_has_no_round_for_decision():
+    row = dict.fromkeys(finish_round.outcome_columns(), 0.0)
+    row.update({"f2_ko_r1": 0.1, "f2_sub_r2": 0.2, "f2_dec": 0.3})
+    selected = finish_round.select_outcome(pd.Series(row), "f2")
+    assert selected["column"] == "f2_dec"
+    assert selected["method"] == "DEC"
+    assert selected["round"] is None
+    assert selected["round_probability"] is None
+
+
 def test_round_log_loss_of_a_uniform_guess():
     probs = pd.DataFrame([[1 / 3, 1 / 3, 1 / 3, 0.0, 0.0]],
                          columns=[f"r{r}" for r in finish_round.ROUNDS])

@@ -14,6 +14,7 @@ Files and how they connect:
 """
 
 import csv
+import math
 import sqlite3
 from collections import defaultdict
 from pathlib import Path
@@ -49,6 +50,26 @@ def _uid(url: str) -> str:
     return url.rstrip("/").rsplit("/", 1)[-1]
 
 
+def _parse_count(value: str | None) -> int | None:
+    """Parse count columns that Greco may serialize as ``0`` or ``0.0``.
+
+    The upstream CSV changed these fields from integer-looking strings to
+    float-looking strings in 2026. Treat only finite, non-negative integral
+    values as counts; malformed or fractional values stay missing instead of
+    being silently rounded.
+    """
+    text = (value or "").strip()
+    if not text:
+        return None
+    try:
+        number = float(text)
+    except ValueError:
+        return None
+    if not math.isfinite(number) or number < 0 or not number.is_integer():
+        return None
+    return int(number)
+
+
 def load_greco(conn: sqlite3.Connection, greco_dir: Path) -> dict[str, int]:
     counts = {"events": 0, "fights": 0, "fight_stats": 0, "fighters": 0,
               "skipped_fights": 0, "skipped_stat_rows": 0}
@@ -80,12 +101,12 @@ def load_greco(conn: sqlite3.Connection, greco_dir: Path) -> dict[str, int]:
         tot_l, tot_a = parse_of_pair(row["TOTAL STR."])
         td_l, td_a = parse_of_pair(row["TD"])
         for field, value in [
-            ("knockdowns", int(row["KD"]) if row["KD"].strip().isdigit() else None),
+            ("knockdowns", _parse_count(row["KD"])),
             ("sig_landed", sig_l), ("sig_attempted", sig_a),
             ("total_landed", tot_l), ("total_attempted", tot_a),
             ("td_landed", td_l), ("td_attempted", td_a),
-            ("sub_attempts", int(row["SUB.ATT"]) if row["SUB.ATT"].strip().isdigit() else None),
-            ("reversals", int(row["REV."]) if row["REV."].strip().isdigit() else None),
+            ("sub_attempts", _parse_count(row["SUB.ATT"])),
+            ("reversals", _parse_count(row["REV."])),
             ("ctrl_seconds", parse_mmss_to_seconds(row["CTRL"])),
             # Strike targets and positions — the style-profile columns.
             ("head_landed", parse_of_pair(row["HEAD"])[0]),

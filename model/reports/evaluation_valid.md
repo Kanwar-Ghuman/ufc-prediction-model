@@ -1,6 +1,6 @@
 # Evaluation report — valid split
 
-Generated 2026-09-01 22:06 UTC. Fights dated (2021-12-31, 2023-12-31]. Walk-forward windows: 2022-01-01->2022-06-30, 2022-07-01->2022-12-31, 2023-01-01->2023-06-30, 2023-07-01->2023-12-16
+Generated 2026-09-04 16:39 UTC. Fights dated (2021-12-31, 2023-12-31]. Walk-forward windows: 2022-01-01->2022-06-30, 2022-07-01->2022-12-31, 2023-01-01->2023-06-30, 2023-07-01->2023-12-16
 
 | model | n | accuracy | log loss | Brier | ROC AUC | ECE | note |
 |---|---|---|---|---|---|---|---|
@@ -8,18 +8,18 @@ Generated 2026-09-01 22:06 UTC. Fights dated (2021-12-31, 2023-12-31]. Walk-forw
 | better record | 1010 | 0.5713 | 10.4166 | 0.4015 | 0.5794 | 0.3762 |  |
 | higher Elo | 1010 | 0.5564 | 0.6806 | 0.2437 | 0.5908 | 0.0313 |  |
 | market (vig-free favorite) | 697 | 0.6793 | 0.6035 | 0.2084 | 0.7344 | 0.0475 | priced fights only |
-| logistic regression (walk-forward) | 1010 | 0.6208 | 0.6477 | 0.2284 | 0.6668 | 0.0334 |  |
-| GBM (walk-forward, tuned) | 1010 | 0.6020 | 0.6521 | 0.2302 | 0.6616 | 0.0293 |  |
-| GBM + isotonic (fit on train-era OOS) | 1010 | 0.6099 | 0.6509 | 0.2296 | 0.6625 | 0.0246 |  |
-| LR+GBM blend (w=0.15, tuned on train-era OOS) | 1010 | 0.6149 | 0.6482 | 0.2285 | 0.6677 | 0.0307 |  |
-| logistic regression (priced subset) | 697 | 0.6313 | 0.6395 | 0.2245 | 0.6831 | 0.0509 | same fights as market row |
-| GBM + isotonic (priced subset) | 697 | 0.6148 | 0.6493 | 0.2287 | 0.6687 | 0.0239 | same fights as market row |
-| LR+GBM blend (priced subset) | 697 | 0.6241 | 0.6455 | 0.2271 | 0.6767 | 0.0294 | same fights as market row |
-| market-aware stack (a=0.97, b=0.34) | 697 | 0.6829 | 0.6008 | 0.2076 | 0.7344 | 0.0508 | IS the odds + residual skill — never 'beat the odds' |
-| shipped (stack + trap) | 1010 | 0.6441 | 0.6206 | 0.2165 | 0.7073 | 0.0341 | predict.py market layer; no YouTube/news. 7 market-trap abstains |
-| shipped (stack + trap, priced subset) | 697 | 0.6664 | 0.6055 | 0.2097 | 0.7294 | 0.0443 | same fights as market row |
+| logistic regression (walk-forward) | 1010 | 0.6228 | 0.6529 | 0.2308 | 0.6599 | 0.0536 |  |
+| GBM (walk-forward, tuned) | 1010 | 0.6089 | 0.6514 | 0.2300 | 0.6606 | 0.0425 |  |
+| GBM + isotonic (fit on train-era OOS) | 1010 | 0.6149 | 0.6502 | 0.2295 | 0.6611 | 0.0293 |  |
+| LR+GBM blend (w=0.20, tuned on train-era OOS) | 1010 | 0.6139 | 0.6479 | 0.2284 | 0.6669 | 0.0254 |  |
+| logistic regression (priced subset) | 697 | 0.6341 | 0.6486 | 0.2286 | 0.6707 | 0.0754 | same fights as market row |
+| GBM + isotonic (priced subset) | 697 | 0.6241 | 0.6507 | 0.2295 | 0.6630 | 0.0284 | same fights as market row |
+| LR+GBM blend (priced subset) | 697 | 0.6241 | 0.6472 | 0.2280 | 0.6703 | 0.0248 | same fights as market row |
+| market-aware stack (a=0.99, b=0.30) | 697 | 0.6743 | 0.6018 | 0.2080 | 0.7337 | 0.0435 | IS the odds + residual skill — never 'beat the odds' |
+| shipped (stack + trap) | 1010 | 0.6475 | 0.6211 | 0.2165 | 0.7088 | 0.0279 | predict.py market layer; no YouTube/news. 6 market-trap abstains |
+| shipped (stack + trap, priced subset) | 697 | 0.6729 | 0.6084 | 0.2106 | 0.7281 | 0.0504 | same fights as market row |
 
-Reading guide: 'better record' is a picking rule (0/0.5/1 outputs) — its log loss is meaningless by design; compare models on log loss / Brier / ECE against the market row, on accuracy against all rows.
+Better-record is a picking rule (0/0.5/1); its log loss is not meaningful. Compare probability metrics to the market row when it exists.
 
 ![reliability diagram](reliability_valid.png)
 
@@ -29,21 +29,21 @@ Positive means: the bigger fighter1's edge in this differential, the likelier fi
 
 | feature | coefficient |
 |---|---|
-| diff_ko_end_rate_l5 | -0.588 |
-| diff_dec_end_rate_l5 | -0.573 |
-| diff_career_wins | +0.467 |
-| diff_career_n_fights | -0.443 |
-| diff_sub_end_rate_l5 | -0.439 |
-| diff_avg_fight_min | +0.371 |
-| diff_losses | +0.353 |
-| diff_style_age_wrestle | +0.313 |
-| diff_ko_win_rate | +0.261 |
+| diff_ko_end_rate_l5 | -0.562 |
+| diff_dec_end_rate_l5 | -0.550 |
+| diff_pre_ufc_fights | +0.466 |
+| diff_pre_ufc_wins | -0.398 |
+| diff_sub_end_rate_l5 | -0.397 |
+| diff_losses | +0.347 |
+| diff_style_age_wrestle | +0.337 |
+| diff_avg_fight_min | +0.331 |
 | diff_elo | +0.248 |
-| diff_strike_elo | +0.232 |
-| diff_finish_involvement | +0.223 |
-| diff_wins | -0.208 |
-| diff_age | -0.196 |
-| diff_sapm_l5 | -0.183 |
+| diff_strike_elo | +0.231 |
+| diff_finish_involvement | +0.225 |
+| diff_td15_l5 | +0.214 |
+| diff_sub15_l5 | -0.207 |
+| diff_age | -0.200 |
+| diff_sapm_l5 | -0.176 |
 
 ## How the fight ends (method + round)
 
@@ -51,14 +51,14 @@ Both models are walk-forward and scored only where they apply: the method model 
 
 | method of victory (how the winner wins) | n | log loss | winner's method | fight KO/sub/dec |
 |---|---|---|---|---|
-| method model, shrunk (production, 75% model) | 1008 | 0.9846 | 50.0% | 49.4% |
-| method model, unshrunk | 1008 | 0.9952 | 51.0% | 49.9% |
-| base rate (division x scheduled rounds, recent era) | 1008 | 1.0300 | 48.5% | 46.0% |
+| method model, shrunk (production, 75% model) | 1008 | 0.9763 | 51.6% | 50.6% |
+| method model, unshrunk | 1008 | 0.9843 | 51.1% | 50.8% |
+| base rate (division x scheduled rounds, recent era) | 1008 | 1.0300 | 48.5% | 45.9% |
 
 | round of finish (1-5) | n | log loss | exact round | within 1 round |
 |---|---|---|---|---|
-| round model, shrunk (production, 50% model) | 530 | 1.0446 | 49.1% | 83.8% |
-| round model, unshrunk | 530 | 1.0536 | 48.1% | 84.2% |
+| round model, shrunk (production, 50% model) | 530 | 1.0450 | 49.1% | 83.8% |
+| round model, unshrunk | 530 | 1.0548 | 48.5% | 84.0% |
 | base rate (method x scheduled rounds) | 530 | 1.0934 | 49.1% | 83.8% |
 
 Uninformed reference: guessing uniformly over 3 methods costs 1.0986; over the 3 rounds of a standard fight, 1.0986. Read both tables with the base-rate row as the bar. Finish timing is close to a coin flip weighted by 'earlier is likelier', which is why the production model is shrunk toward that base rate rather than trusted outright.

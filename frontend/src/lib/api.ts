@@ -159,8 +159,18 @@ export type Bout = {
   pick: string;
   confidence: number;
   called: boolean;
-  /** The single likeliest exact outcome on the pick's side, in words. */
-  top_outcome: { label: string; probability: number };
+  /** Method is selected by marginal probability; finish round is conditional on it. */
+  top_outcome: {
+    label: string;
+    /** Joint P(picked fighter wins by this method in this exact round). */
+    probability: number;
+    method: "KO/TKO" | "SUB" | "DEC";
+    round: number | null;
+    /** Joint P(picked fighter wins by this method), marginalized over rounds. */
+    method_probability: number;
+    /** P(round | picked fighter wins by method), null for a decision. */
+    round_probability: number | null;
+  };
   /** Word-for-word prediction, e.g. "Medic by KO/TKO in round 1". */
   statement: string | null;
   /** UFC fights each man had before this one; 0 is a debut, null unknown. */

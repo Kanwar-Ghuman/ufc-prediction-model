@@ -81,10 +81,43 @@ def test_form_weights_recent_results_by_opponent_elo():
     assert snap["last_was_finish"] == 1.0
     assert snap["days_since_ko"] == pytest.approx(
         (date(2021, 1, 1) - date(2020, 6, 1)).days)
-    # (+1 * 1500/1500 + -1 * 1700/1500) / 2
-    assert snap["form_l5"] == pytest.approx((1.0 - 1700 / 1500) / 2)
+    expected_vs_elite = 1 / (1 + 10 ** (200 / 400))
+    assert snap["form_l5"] == pytest.approx((1.0 - 2 * expected_vs_elite) / 2)
     assert snap["vs_striker_win_pct"] is None   # only one fight vs a striker
     assert snap["vs_wrestler_win_pct"] is None  # only one fight vs a wrestler
+
+
+def test_loss_to_stronger_opponent_hurts_form_less():
+    from dataclasses import replace
+    from octagon.features.build import PastFight
+
+    loss = PastFight(date(2020, 1, 1), "loss", "U-DEC", 3, 900, None, None)
+    weak = form_snapshot([replace(loss, opp_elo_pre=1300)], date(2021, 1, 1), 1500)
+    strong = form_snapshot([replace(loss, opp_elo_pre=1700)], date(2021, 1, 1), 1500)
+    assert weak["form_l3"] < strong["form_l3"] < 0
+    # Today's rating must not rewrite expectations for an old fight.
+    assert strong["form_l3"] == form_snapshot(
+        [replace(loss, opp_elo_pre=1700)], date(2021, 1, 1), 1900)["form_l3"]
+
+
+def test_zero_defense_is_observed_and_not_imputed():
+    wrestler = {"td15_l5": 3.0, "ground_share_l5": 0.7, "sub15_l5": 1.0}
+    zero = {"td_def_l5": 0.0, "ground_absorbed_share_l5": 0.0}
+    missing = {}
+    z = style_matchup(wrestler, zero)
+    m = style_matchup(wrestler, missing)
+    assert z["style_wrestle_strike"] > m["style_wrestle_strike"]
+    assert z["style_grapple_strike"] == 0.0
+    assert m["style_grapple_strike"] > 0.0
+
+
+def test_saturated_style_scores_do_not_label_a_wrestler_as_only_a_striker():
+    row = {"f1_style_striker": 1., "f1_style_wrestler": 1.,
+           "f2_style_striker": 1., "f2_style_wrestler": 0.,
+           "f1_td15_l5": 10., "f2_td_def_l5": 0.7}
+    notes = research_brief(row, "Wrestler", "Striker")
+    assert not any("both profile as strikers" in note for note in notes)
+    assert any("Wrestler lands 10.0 takedowns/15" in note for note in notes)
 
 
 def test_style_record_uses_the_opponents_archetype_not_a_generic_win_rate():

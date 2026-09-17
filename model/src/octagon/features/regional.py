@@ -42,13 +42,14 @@ def load_regional(conn: sqlite3.Connection) -> dict[str, dict]:
     try:
         conn.row_factory = sqlite3.Row
         for row in conn.execute(
-                "SELECT fighter_name, date, result, method, org, is_amateur "
+                "SELECT fighter_name, date, opponent, result, method, org, is_amateur "
                 "FROM regional_fights"):
             norm_key = normalize_name(row["fighter_name"])
             if norm_key not in regional:
                 regional[norm_key] = []
             regional[norm_key].append({
                 "date": row["date"],
+                "opponent": row["opponent"],
                 "result": row["result"],
                 "method": row["method"],
                 "org": row["org"],

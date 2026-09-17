@@ -55,17 +55,20 @@ def load_card(path: Path) -> tuple[str, str, list[CardFight]]:
     return str(raw["date"]), raw.get("event", "Upcoming card"), fights
 
 
-def pick_call(prob: float, f1: str, f2: str, low: float, high: float) -> str:
+def pick_call(prob: float, f1: str, f2: str, low: float, high: float,
+              call_all: bool = False) -> str:
     """Decisive pick, or no-call when the shipped number sits in the dead zone."""
     pick = f1 if prob >= 0.5 else f2
     conf = max(prob, 1.0 - prob)
     if low <= prob <= high:
+        if call_all:
+            return f"pick: {pick} ({conf:.0%}; close fight)"
         return f"no call ({conf:.0%} lean {pick})"
     return f"pick: {pick} ({conf:.0%})"
 
 
 def _ending_lines(joint_row, ending_row, f1: str, f2: str,
-                  scheduled: int) -> tuple[list[str], list[str]]:
+                  scheduled: int, pick_corner: str) -> tuple[list[str], list[str]]:
     """One fight's outcome distribution, as (headline bullets, grid).
 
     The headlines answer what a reader asks first — does this go the
@@ -77,10 +80,27 @@ def _ending_lines(joint_row, ending_row, f1: str, f2: str,
     rounds = [r for r in finish_round.ROUNDS if r <= scheduled]
     decision = float(joint_row["f1_dec"] + joint_row["f2_dec"])
     by_round = " / ".join(f"R{r} {ending_row[f'r{r}']:.0%}" for r in rounds)
+    selected = finish_round.select_outcome(joint_row, pick_corner)
+    selected_name = f1 if pick_corner == "f1" else f2
+    if selected["round"] is None:
+        pick_line = (
+            f"- pick outcome: {selected_name} by decision "
+            f"({selected['method_probability']:.0%})"
+        )
+    else:
+        method_label = ("KO/TKO" if selected["method"] == "KO/TKO"
+                        else "submission")
+        pick_line = (
+            f"- pick outcome: {selected_name} by {method_label}, "
+            f"round {selected['round']} (method {selected['method_probability']:.0%}; "
+            f"round given method {selected['round_probability']:.0%}; "
+            f"exact outcome {selected['exact_probability']:.0%})"
+        )
     likeliest = ", ".join(
         f"{finish_round.describe(name, f1, f2)} ({value:.0%})"
         for name, value in joint_row.sort_values(ascending=False).head(3).items())
     headlines = [
+        pick_line,
         f"- how it ends: finish {1 - decision:.0%} ({by_round}) "
         f"vs. decision {decision:.0%}",
         f"- likeliest endings: {likeliest}",
@@ -129,6 +149,10 @@ class CardPrediction:
     include_raw: bool
     context_notes: dict = field(default_factory=dict)  # bout idx -> notes
     context: object | None = None  # day-before scrape payload, if present
+    prediction_mode: str = "market_aware"
+    call_all: bool = False
+    component_prob: object | None = None  # DataFrame: independent LR and GBM votes
+    recent_fights: dict = field(default_factory=dict)
 
 
 def card_predictions(conn, card_path: Path, artifact: dict, cfg: dict) -> CardPrediction:
@@ -144,7 +168,21 @@ def card_predictions(conn, card_path: Path, artifact: dict, cfg: dict) -> CardPr
     from octagon.models import calibration, ensemble, finish_round, gbm, logistic, method
 
     date, event, card = load_card(card_path)
+    policy = cfg.get("prediction") or {}
+    mode = policy.get("mode", "market_aware")
+    if mode not in {"skill_only", "market_aware"}:
+        raise ValueError(f"Unknown prediction mode: {mode}")
     bouts = [b for b in load_bouts(conn) if b.date < date]
+    recent_fights = {}
+    for b in bouts:
+        for name, opponent, won in ((b.fighter1, b.fighter2, "fighter1"),
+                                    (b.fighter2, b.fighter1, "fighter2")):
+            recent_fights.setdefault(name, []).append({
+                "date": b.date, "opponent": opponent,
+                "result": ("win" if b.winner == won else "loss"
+                           if b.winner in {"fighter1", "fighter2"} else b.winner),
+                "method": b.method, "round": b.end_round,
+            })
 
     known: dict[str, str] = {}
     for b in bouts:
@@ -170,13 +208,30 @@ def card_predictions(conn, card_path: Path, artifact: dict, cfg: dict) -> CardPr
 
     from octagon.features.regional import load_regional
 
+    regional_by_name = load_regional(conn)
+    for fight in card:
+        for name in (fight.fighter1, fight.fighter2):
+            records = recent_fights.setdefault(name, [])
+            seen = {(f["date"], normalize_name(f["opponent"])) for f in records}
+            for f in regional_by_name.get(normalize_name(name), []):
+                key = (f["date"], normalize_name(f.get("opponent") or ""))
+                if f["date"] < date and not f.get("is_amateur") and key not in seen:
+                    records.append({"date": f["date"], "opponent": f.get("opponent"),
+                                    "result": f["result"], "method": f.get("method"),
+                                    "round": None})
+                    seen.add(key)
+            records.sort(key=lambda f: f["date"])
+
     df = pd.DataFrame(build_feature_rows(
-        bouts, load_tott(conn), regional_by_name=load_regional(conn),
+        bouts, load_tott(conn), regional_by_name=regional_by_name,
         seed=cfg["seed"], **elo_kwargs(cfg)))
     history = df[df["label"].notna()]
     upcoming = df[df["label"].isna()]
 
     raw_flag = artifact.get("include_raw", False)
+    from octagon.lineage import verify_artifact_snapshot
+
+    verify_artifact_snapshot(history, artifact)
     n_seeds = artifact.get("n_seeds", 1)
     gbm_model = gbm.fit(history, artifact["params"], seed=artifact["seed"],
                         include_raw=raw_flag, n_seeds=n_seeds)
@@ -188,13 +243,16 @@ def card_predictions(conn, card_path: Path, artifact: dict, cfg: dict) -> CardPr
     p_lr = logistic.predict(lr_model, upcoming)
     p_skill = ensemble.blend(p_lr, p_gbm, artifact["weight_lr"])
 
-    if artifact.get("debut_model") is not None and artifact.get("debut_stack") is not None:
+    if artifact.get("debut_stack") is not None and artifact.get("debut_params"):
         from octagon.models import debut
         from octagon.models import debut_stack as debut_stack_model
 
         low_hist = debut.low_history_mask(upcoming).to_numpy()
         if low_hist.any():
-            p_debut = debut.predict_sym(artifact["debut_model"], upcoming,
+            current_debut_model = debut.fit(
+                history, artifact["debut_params"], seed=artifact["seed"],
+                include_raw=raw_flag, n_seeds=n_seeds)
+            p_debut = debut.predict_sym(current_debut_model, upcoming,
                                         include_raw=raw_flag)
             d_a, d_b = artifact["debut_stack"]
             p_stacked = debut_stack_model.predict_stack(d_a, d_b, p_skill, p_debut)
@@ -202,7 +260,7 @@ def card_predictions(conn, card_path: Path, artifact: dict, cfg: dict) -> CardPr
 
     context_notes: dict[int, list[str]] = {}
     for i, fight in enumerate(card):
-        if not fight.ranking:
+        if mode == "skill_only" or not fight.ranking:
             continue
         row = upcoming.iloc[i]
         adjusted, note = apply_ranking_nudge(
@@ -217,24 +275,27 @@ def card_predictions(conn, card_path: Path, artifact: dict, cfg: dict) -> CardPr
         if row["f1_odds"] is not None and not pd.isna(row["f1_odds"]):
             fair[i], _ = remove_vig(implied_probability(row["f1_odds"]),
                                     implied_probability(row["f2_odds"]))
-    p, trapped = apply_market_layer(
-        p_skill, fair,
-        upcoming["f1_n_fights"].to_numpy(), upcoming["f2_n_fights"].to_numpy(),
-        stack=artifact.get("market_stack"),
-        research_weight=resolve_research_weight(artifact, cfg),
-        career1=upcoming["f1_career_n_fights"].to_numpy(),
-        career2=upcoming["f2_career_n_fights"].to_numpy())
-    for i in np.flatnonzero(trapped):
-        context_notes.setdefault(int(i), []).append(
-            f"market-trap guard: skill={float(p_skill[i]):.2f} but market="
-            f"{float(fair[i]):.2f} on a debut bout — abstaining")
+    if mode == "skill_only":
+        p = p_skill.copy()
+    else:
+        p, trapped = apply_market_layer(
+            p_skill, fair,
+            upcoming["f1_n_fights"].to_numpy(), upcoming["f2_n_fights"].to_numpy(),
+            stack=artifact.get("market_stack"),
+            research_weight=resolve_research_weight(artifact, cfg),
+            career1=upcoming["f1_career_n_fights"].to_numpy(),
+            career2=upcoming["f2_career_n_fights"].to_numpy())
+        for i in np.flatnonzero(trapped):
+            context_notes.setdefault(int(i), []).append(
+                f"market-trap guard: skill={float(p_skill[i]):.2f} but market="
+                f"{float(fair[i]):.2f} on a debut bout — abstaining")
 
     context_payload = None
     try:
         from octagon.scraping import context as card_context
 
         context_payload = card_context.load_context(card_path)
-        if context_payload:
+        if context_payload and mode != "skill_only":
             from octagon.db.parsing import normalize_name as _nn
 
             fighters_ctx = context_payload.get("fighters", {})
@@ -266,7 +327,7 @@ def card_predictions(conn, card_path: Path, artifact: dict, cfg: dict) -> CardPr
                     youtube_n_signals=int(yt.get("n_signals") or 0),
                     skill_p=float(p_skill[i]),
                 )
-                if notes:
+                if notes and mode != "skill_only":
                     p[i] = adjusted
                     context_notes.setdefault(i, []).extend(notes)
     except Exception:  # noqa: BLE001 — context is optional at predict time
@@ -299,7 +360,10 @@ def card_predictions(conn, card_path: Path, artifact: dict, cfg: dict) -> CardPr
         card_order={-(i + 1): i for i in range(len(card))},
         sections={-(i + 1): f.section for i, f in enumerate(card)},
         renames=renames, shap_model=shap_model, include_raw=raw_flag,
-        context_notes=context_notes, context=context_payload)
+        context_notes=context_notes, context=context_payload,
+        prediction_mode=mode, call_all=bool(policy.get("call_all", False)),
+        component_prob=pd.DataFrame({"p_lr": p_lr, "p_gbm": p_gbm}, index=upcoming.index),
+        recent_fights={name: fights[-3:] for name, fights in recent_fights.items()})
 
 
 def top_drivers(contributions, top: int = 6) -> list[dict]:
@@ -340,6 +404,11 @@ def predictions_frame(pred: CardPrediction):
     frame["p_f1_wins"] = pred.win_prob
     frame["p_skill"] = pred.skill_prob
     frame["p_market"] = pred.market_prob
+    frame["prediction_mode"] = pred.prediction_mode
+    frame["call_all"] = pred.call_all
+    if pred.component_prob is not None:
+        for name in ("p_lr", "p_gbm"):
+            frame[name] = pred.component_prob[name].to_numpy()
     frame["drivers"] = [json.dumps(top_drivers(pred.drivers.loc[idx]))
                         for idx in pred.upcoming.index]
     notes = pred.context_notes or {}
@@ -354,6 +423,13 @@ def predictions_frame(pred: CardPrediction):
         bout_rows.append({
             "adjustments": notes.get(i, []),
             "research": research_brief(row.to_dict(), row["f1_name"], row["f2_name"]),
+            "recent_fights": {name: pred.recent_fights.get(name, [])
+                              for name in (row["f1_name"], row["f2_name"])},
+            "evidence": {
+                corner: {key: (None if pd.isna(row.get(f"{corner}_{key}"))
+                               else float(row[f"{corner}_{key}"]))
+                         for key in EVIDENCE_KEYS}
+                for corner in ("f1", "f2")},
             "f1": {
                 "styles": c1.get("styles") or [],
                 "pro_record": c1.get("pro_record"),
@@ -374,6 +450,14 @@ def predictions_frame(pred: CardPrediction):
     frame["context"] = [json.dumps(b, ensure_ascii=False) for b in bout_rows]
     return pd.concat([frame.reset_index(drop=True),
                       pred.joint.reset_index(drop=True)], axis=1)
+
+
+EVIDENCE_KEYS = (
+    "age", "reach_cm", "n_fights", "career_n_fights", "layoff_days",
+    "slpm_l3", "sapm_l3", "slpm_l5", "sapm_l5", "sig_def_l5",
+    "td15_l5", "td_def_l5", "ctrl_pct_l5", "kd15_l5", "sub15_l5",
+    "opp_elo_l5", "form_l3", "form_l5", "times_koed",
+)
 
 
 def _pro_record(name: str, cfg: dict) -> str | None:
@@ -425,13 +509,17 @@ def render_card(pred: CardPrediction, artifact: dict, cfg: dict) -> str:
     ]
     if renames:
         lines += ["Name spellings resolved against ufcstats: " + "; ".join(renames), ""]
+    lines += [f"Prediction mode: **{pred.prediction_mode}**. "
+              + ("Odds, ranking nudges and social sentiment do not change these probabilities."
+                 if pred.prediction_mode == "skill_only" else "Market layer enabled."),
+              f"Historical results available through {pred.history['date'].max()}.", ""]
     for i, (idx, row) in enumerate(upcoming.iterrows()):
         prob = float(p[i])
         f1, f2 = row["f1_name"], row["f2_name"]
         band = cfg.get("abstain") or {}
         call = pick_call(prob, f1, f2,
                          float(band.get("low", 0.42)),
-                         float(band.get("high", 0.58)))
+                         float(band.get("high", 0.58)), call_all=pred.call_all)
         lines += [f"## {f1} vs. {f2}"
                   + (f" — {row['weight_class']}" if row["weight_class"] else ""),
                   f"P({f1} wins) = {prob:.3f}  ->  {call}"]
@@ -446,23 +534,58 @@ def render_card(pred: CardPrediction, artifact: dict, cfg: dict) -> str:
                              f"weak.{context}")
         for note in (pred.context_notes or {}).get(i, []):
             lines.append(f"- context: {note}")
+        from octagon.db.parsing import normalize_name
+
+        verified = (pred.context or {}).get("fighters", {})
+        for name in (f1, f2):
+            fact = verified.get(normalize_name(name), {})
+            if fact.get("summary"):
+                sources = [h.get("url") for h in fact.get("headlines", []) if h.get("url")]
+                source = f" [Source]({sources[0]})." if sources else ""
+                lines.append(f"- verified context, {name}: {fact['summary']}{source}")
         for note in research_brief(row.to_dict(), f1, f2):
             lines.append(f"- research: {note}")
+        for name in (f1, f2):
+            recent = pred.recent_fights.get(name, [])
+            if recent:
+                lines.append(f"- recent fights, {name}: " + "; ".join(
+                    f"{f['date']} {f['result']} vs {f['opponent']} ({f['method']})"
+                    for f in reversed(recent)))
+        if pred.component_prob is not None:
+            votes = pred.component_prob.loc[idx]
+            lines.append(f"- independent model votes for {f1}: logistic {votes['p_lr']:.1%}, "
+                         f"calibrated GBM {votes['p_gbm']:.1%}. "
+                         "Their spread is a sensitivity check, not a confidence interval.")
+        lines += ["", f"| Pre-fight evidence | {f1} | {f2} |", "|---|---:|---:|"]
+        for key, label in (("age", "Age"), ("reach_cm", "Reach (cm)"),
+                           ("n_fights", "UFC fights"), ("layoff_days", "Days since UFC fight"),
+                           ("slpm_l3", "Last 3: sig. strikes landed/min"),
+                           ("sapm_l3", "Last 3: sig. strikes absorbed/min"),
+                           ("td15_l5", "Last 5: takedowns/15 min"),
+                           ("td_def_l5", "Last 5: takedown defense (fraction)"),
+                           ("ctrl_pct_l5", "Last 5: control-time fraction"),
+                           ("opp_elo_l5", "Last 5: opponent pre-fight Elo")):
+            values = [row.get(f"{corner}_{key}") for corner in ("f1", "f2")]
+            cells = ["unavailable" if pd.isna(v) else f"{float(v):.2f}" for v in values]
+            lines.append(f"| {label} | {' | '.join(cells)} |")
+        lines.append("")
         fair1, skill1 = float(pred.market_prob[i]), float(pred.skill_prob[i])
         if not pd.isna(fair1):
             lines.append(f"- skill-only research model P({f1}) = {skill1:.3f}; "
                          f"vig-free market = {fair1:.3f} "
                          f"(gap {skill1 - fair1:+.3f}). "
-                         f"Shipped number mixes both; deeper UFC history "
-                         f"weights the research model more.")
+                         + ("Market shown for comparison only."
+                            if pred.prediction_mode == "skill_only" else
+                            "Shipped number mixes both; deeper UFC history weights skill more."))
 
         m = methods.loc[idx]
         lines.append(
             f"- method: {f1} by KO {m['f1_ko']:.0%} / sub {m['f1_sub']:.0%} / "
             f"dec {m['f1_dec']:.0%}; {f2} by KO {m['f2_ko']:.0%} / "
             f"sub {m['f2_sub']:.0%} / dec {m['f2_dec']:.0%}")
-        headlines, table = _ending_lines(joint.loc[idx], endings.loc[idx], f1, f2,
-                                         int(row["scheduled_rounds"] or 3))
+        headlines, table = _ending_lines(
+            joint.loc[idx], endings.loc[idx], f1, f2,
+            int(row["scheduled_rounds"] or 3), "f1" if prob >= 0.5 else "f2")
         lines += headlines
 
         drivers = ", ".join(f"{d['feature']} {d['value']:+.2f}"

@@ -77,17 +77,19 @@ function ModelStrip({ bout, result }: { bout: Bout; result?: GradedFight }) {
   // A no-call has no favourite to colour. Leaving the leading number red
   // would read as a pick the model explicitly declined to make.
   const lead = bout.called ? "text-blood" : "text-ash";
-  const prediction =
-    bout.called && bout.top_outcome
-      ? bout.statement ?? `${bout.pick} ${bout.top_outcome.label}`
-      : bout.called
-        ? `picks ${bout.pick}`
-        : "Too close to call";
+  const selectedOutcome = bout.top_outcome
+    ? `${bout.pick} ${bout.top_outcome.label}`
+    : `picks ${bout.pick}`;
+  const prediction = bout.called
+    ? bout.statement ?? selectedOutcome
+    : `Lean: ${selectedOutcome}`;
 
   return (
     <div className="border-t border-line bg-shell/70">
       <div className="px-4 pt-3 pb-1 text-center">
-        <p className="label text-[10px] text-mist">Model prediction</p>
+        <p className="label text-[10px] text-mist">
+          {bout.called ? "Model prediction" : "Model lean · low confidence"}
+        </p>
         {result ? (
           <p
             className={`label mt-1 text-sm ${
@@ -113,14 +115,7 @@ function ModelStrip({ bout, result }: { bout: Bout; result?: GradedFight }) {
             {prediction}
           </p>
         )}
-        {bout.called && bout.top_outcome && !result && (
-          <p className="mt-1 text-[11px] text-ash">
-            Exact ending{" "}
-            <span className="font-mono text-blood">
-              {pct(bout.top_outcome.probability)}
-            </span>
-          </p>
-        )}
+        {bout.top_outcome && !result && <OutcomeBreakdown bout={bout} />}
       </div>
       <div className="flex items-center justify-between gap-4 px-4 pb-2">
         <span className={`display text-base ${p1 >= 0.5 ? lead : "text-ash"}`}>
@@ -132,6 +127,58 @@ function ModelStrip({ bout, result }: { bout: Bout; result?: GradedFight }) {
         </span>
       </div>
       <ProbabilityBar left={p1} muted={!bout.called} />
+    </div>
+  );
+}
+
+/** The selected method first, then the conditional round and exact joint P. */
+function OutcomeBreakdown({ bout }: { bout: Bout }) {
+  const outcome = bout.top_outcome;
+  const method =
+    outcome.method === "DEC"
+      ? "Decision"
+      : outcome.method === "SUB"
+        ? "Submission"
+        : "KO/TKO";
+  const valueTone = bout.called ? "text-blood" : "text-ash";
+  const cell = "border border-line bg-paper/60 px-2 py-2";
+
+  return (
+    <div
+      className={`mx-auto mt-3 grid max-w-xl gap-1 text-left ${
+        outcome.round == null ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4"
+      }`}
+    >
+      <div className={cell}>
+        <p className="label text-[9px] text-mist">Method</p>
+        <p className={`display mt-0.5 text-sm ${valueTone}`}>{method}</p>
+      </div>
+      <div className={cell}>
+        <p className="label text-[9px] text-mist">Winner + method</p>
+        <p className={`font-mono text-sm font-semibold ${valueTone}`}>
+          {pct(outcome.method_probability)}
+        </p>
+      </div>
+      {outcome.round != null && outcome.round_probability != null && (
+        <>
+          <div className={cell}>
+            <p className="label text-[9px] text-mist">Exact round</p>
+            <p className={`display mt-0.5 text-sm ${valueTone}`}>
+              Round {outcome.round}
+            </p>
+            <p className="text-[9px] text-mist">
+              {pct(outcome.round_probability)} within method
+            </p>
+          </div>
+          <div className={cell}>
+            <p className="label text-[9px] text-mist">Full outcome</p>
+            <p className={`font-mono text-sm font-semibold ${valueTone}`}>
+              {pct(outcome.probability)}
+            </p>
+            <p className="text-[9px] text-mist">winner + method + round</p>
+          </div>
+        </>
+      )}
     </div>
   );
 }

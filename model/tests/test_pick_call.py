@@ -18,3 +18,10 @@ def test_band_edge_is_no_call_inclusive():
     assert pick_call(0.42, "A", "B", 0.42, 0.58).startswith("no call")
     assert pick_call(0.58, "A", "B", 0.42, 0.58).startswith("no call")
     assert pick_call(0.581, "A", "B", 0.42, 0.58).startswith("pick:")
+
+
+def test_call_all_keeps_close_fight_label_and_selects_every_winner():
+    assert pick_call(0.49, "A", "B", 0.42, 0.58, call_all=True) == (
+        "pick: B (51%; close fight)")
+    assert pick_call(0.5, "A", "B", 0.42, 0.58, call_all=True).startswith("pick: A")
+    assert pick_call(0.7, "A", "B", 0.42, 0.58, call_all=True) == "pick: A (70%)"

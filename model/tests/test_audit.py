@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from octagon.eval.audit import check_chronological_splits
+from octagon.eval.audit import check_chronological_splits, check_symmetry
 
 
 def _frame(rows):
@@ -40,3 +40,26 @@ def test_clean_chronological_splits_pass():
     _, ok, detail = check_chronological_splits(df, "2021-12-31", "2023-12-31")
     assert ok is True
     assert "1 rematch" in detail
+
+
+def test_symmetry_distinguishes_style_levels_from_style_interactions():
+    """diff_style_striker has raw corners; diff_style_* matchup terms do not."""
+    row = {
+        "fight_id": 1,
+        "f1_name": "A",
+        "f2_name": "B",
+        "f1_style_striker": 0.8,
+        "f2_style_striker": 0.3,
+        "diff_style_striker": 0.5,
+        "f1_style_wrestler": 0.0,
+        "f2_style_wrestler": 0.0,
+        "f1_style_grappler": 0.0,
+        "f2_style_grappler": 0.0,
+        "f1_style_pressure": 0.0,
+        "f2_style_pressure": 0.0,
+        "label": 1,
+        "swapped": 0,
+    }
+    name, ok, detail = check_symmetry(pd.DataFrame([row]), n=1)
+    assert name == "differentials antisymmetric on real rows"
+    assert ok, detail

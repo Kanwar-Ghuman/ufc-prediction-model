@@ -1,0 +1,40 @@
+# User-provided matchups, rankings and regions; event date verified on Sherdog.
+# Ednilson Santos is listed by Sherdog as Ednilson Barros Santos.
+date: '2026-09-15'
+event: "Dana White's Contender Series 2026: Week 6"
+fights:
+  - fighter1: Mayton Perea
+    fighter2: Zevan Hunt
+    weight_class: Welterweight
+    rounds: 3
+    section: Main event
+    ranking: [68, 61]
+    region: [South America, North America]
+  - fighter1: Igor Cavalcanti
+    fighter2: Oscar Ravello
+    weight_class: Middleweight
+    rounds: 3
+    section: Main card
+    ranking: [6, 2]
+    region: [South America, South America]
+  - fighter1: Akbar Abdullaev
+    fighter2: Ednilson Barros Santos
+    weight_class: Lightweight
+    rounds: 3
+    section: Main card
+    ranking: [7, 108]
+    region: [Asia Pacific, North America]
+  - fighter1: Hugo Guillon
+    fighter2: Luis Hernandez
+    weight_class: Middleweight
+    rounds: 3
+    section: Main card
+    ranking: [162, 89]
+    region: [Europe, North America]
+  - fighter1: Antônio Monteiro
+    fighter2: Tyshawn Williams
+    weight_class: Featherweight
+    rounds: 3
+    section: Main card
+    ranking: [28, 67]
+    region: [South America, North America]

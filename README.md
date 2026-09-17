@@ -45,7 +45,7 @@ Full tables and plots: `model/reports/evaluation_{valid,test}.md`.
 cd model
 uv sync                          # macOS: brew install libomp first
 uv run pytest
-uv run python -m octagon build-db
+uv run python -m octagon build-db       # also restores cached regional histories
 uv run python -m octagon build-features
 uv run python -m octagon audit
 uv run python -m octagon train
@@ -55,6 +55,7 @@ uv run python -m octagon evaluate
 Upcoming card:
 
 ```bash
+cp .env.example .env             # then fill in ODDS_API_KEY / YOUTUBE_API_KEY
 uv run python -m octagon refresh-data
 uv run python -m octagon fetch-card
 uv run python -m octagon fetch-odds --card cards/<slug>.yaml   # needs ODDS_API_KEY
@@ -62,6 +63,20 @@ uv run python -m octagon fetch-media --card cards/<slug>.yaml
 uv run python -m octagon fetch-context --card cards/<slug>.yaml --event "UFC …"
 uv run python -m octagon predict --card cards/<slug>.yaml
 ```
+
+Predictions now default to `prediction.mode: skill_only` and
+`prediction.call_all: true` in `model/config.yaml`: every fight gets a winner,
+including close fights. Odds, ranking nudges and social sentiment cannot move
+these probabilities. Reports show the individual LR/GBM votes, recent fights,
+and striking/grappling evidence. Low confidence still means low confidence.
+Older frozen cards retain their original policy.
+
+September 11 corrections replace the recent-form score with performance
+relative to each opponent's pre-fight Elo expectation and preserve genuine
+zero defensive rates. On the same 1,010 validation fights, accuracy rose from
+60.99% to 61.78%, and log loss fell from 0.64905 to 0.64788. This is a modest
+diagnostic improvement, not a new untouched-test result; its paired accuracy
+interval includes zero. Details: `model/reports/noche_2026_improvements.md`.
 
 Or `octagon day-before --card … --event …`. After the event,
 `octagon score-card --card …` grades the frozen file, not a refit.
@@ -100,6 +115,7 @@ model/
 ├── src/octagon/     # scraping, db, features, models, eval, betting, api, cli
 ├── notebooks/       # EDA, features, error analysis
 ├── cards/           # event YAML
+├── supplements/     # hand-verified fights missing from the upstream feed
 ├── reports/         # evaluation markdown, plots, frozen card predictions
 └── tests/
 frontend/src/
@@ -107,3 +123,7 @@ frontend/src/
 ├── components/
 └── lib/api.ts
 ```
+
+## License
+
+[MIT](LICENSE).

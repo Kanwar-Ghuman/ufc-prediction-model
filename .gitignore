@@ -1,6 +1,10 @@
 # Agent / editor tooling
+.agents/
 .claude/
+.codex/
 .cursor/
+.idea/
+.vscode/
 
 # Data is rebuildable from sources; do not commit it.
 model/data/

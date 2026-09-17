@@ -106,16 +106,21 @@ def check_symmetry(df: pd.DataFrame, n: int = 200) -> Check:
     """
     from octagon.features.build import matchup_features
 
-    # No f1_/f2_ counterpart — skip the subtraction check.
-    skip_prefixes = (
-        "diff_matchup_", "diff_style_", "diff_h2h_", "diff_common_")
-    # Recomputable from the two snapshots alone.
-    recompute_prefixes = ("diff_matchup_", "diff_style_")
+    # Exact cross-fighter interactions have no f1_/f2_ counterpart. Do not
+    # skip the per-fighter archetype differences (diff_style_striker, etc.),
+    # which are ordinary f1-minus-f2 columns despite sharing the prefix.
+    from octagon.features.style import style_matchup
+
+    interaction_names = {
+        *(f"diff_matchup_{key}" for key in (
+            "td_pressure", "strike_pressure", "power_chin", "sub_threat", "sub_finish")),
+        *(f"diff_{key}" for key in style_matchup({}, {})),
+    }
     diff_cols = [c for c in df.columns
                  if c.startswith("diff_")
-                 and not c.startswith(skip_prefixes)]
-    interaction_cols = [c for c in df.columns
-                        if c.startswith(recompute_prefixes)]
+                 and c not in interaction_names
+                 and not c.startswith(("diff_h2h_", "diff_common_"))]
+    interaction_cols = [c for c in df.columns if c in interaction_names]
     problems = []
     for _, row in df.sample(min(n, len(df)), random_state=0).iterrows():
         d = row.to_dict()
@@ -145,6 +150,37 @@ def check_symmetry(df: pd.DataFrame, n: int = 200) -> Check:
             problems.append(f"fight {d['fight_id']}: swap not an involution")
     return ("differentials antisymmetric on real rows",
             not problems, "; ".join(problems[:3]) or f"{n} rows verified")
+
+
+def check_stats_coverage(conn: sqlite3.Connection, df: pd.DataFrame) -> Check:
+    """Catch upstream serialization drift before it trains a model.
+
+    Greco's count fields once changed from ``0`` to ``0.0``. The old parser
+    converted almost the entire KD/submission signal to NULL while every
+    structural leakage check still passed. Validate both the database and
+    the derived rolling features so a stale parquet cannot hide the problem.
+    """
+    row = conn.execute(
+        "SELECT COUNT(*) AS n, COUNT(knockdowns) AS kd, "
+        "COUNT(sub_attempts) AS sub, COUNT(reversals) AS rev FROM fight_stats"
+    ).fetchone()
+    total = int(row["n"])
+    db_ratios = {
+        "knockdowns": (int(row["kd"]) / total if total else 0.0),
+        "sub_attempts": (int(row["sub"]) / total if total else 0.0),
+        "reversals": (int(row["rev"]) / total if total else 0.0),
+    }
+    feature_cols = ("f1_kd15_l5", "f2_kd15_l5", "f1_sub15_l5", "f2_sub15_l5")
+    missing_cols = [c for c in feature_cols if c not in df]
+    empty_cols = [c for c in feature_cols if c in df and not df[c].notna().any()]
+    thin_db = {k: v for k, v in db_ratios.items() if v < 0.90}
+    ok = total > 0 and not thin_db and not missing_cols and not empty_cols
+    detail = "; ".join(
+        [f"{key} DB coverage {value:.1%}" for key, value in db_ratios.items()]
+        + ([f"missing feature columns: {', '.join(missing_cols)}"] if missing_cols else [])
+        + ([f"all-null feature columns: {', '.join(empty_cols)}"] if empty_cols else [])
+    )
+    return ("fight-stat count fields and rolling features have coverage", ok, detail)
 
 
 def check_chronological_splits(df: pd.DataFrame, train_end: str, valid_end: str) -> Check:
@@ -215,6 +251,7 @@ def check_no_leaky_columns(df: pd.DataFrame) -> Check:
 def run_audit(conn: sqlite3.Connection, df: pd.DataFrame,
               train_end: str, valid_end: str) -> list[Check]:
     return [
+        check_stats_coverage(conn, df),
         check_records_vs_sql(conn, df),
         check_known_records(df),
         check_symmetry(df),

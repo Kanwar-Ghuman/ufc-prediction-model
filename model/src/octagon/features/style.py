@@ -25,16 +25,20 @@ def _primary(scores: dict[str, float]) -> str:
 
 def style_matchup(f1: dict, f2: dict) -> dict[str, float | None]:
     """How styles clash — antisymmetric diffs for the feature table."""
+    def observed(snap: dict, key: str, default: float) -> float:
+        value = snap.get(key)
+        return default if value is None else float(value)
+
     a, b = style_scores(f1), style_scores(f2)
     wrestle_vs_strike = (
-        a["wrestler"] * (1.0 - (f2.get("td_def_l5") or 0.5))
-        - b["wrestler"] * (1.0 - (f1.get("td_def_l5") or 0.5)))
+        a["wrestler"] * (1.0 - observed(f2, "td_def_l5", 0.5))
+        - b["wrestler"] * (1.0 - observed(f1, "td_def_l5", 0.5)))
     strike_vs_wrestle = (
         a["striker"] * max(0.0, 1.0 - b["wrestler"])
         - b["striker"] * max(0.0, 1.0 - a["wrestler"]))
     grapple_vs_strike = (
-        a["grappler"] * (f2.get("ground_absorbed_share_l5") or 0.3)
-        - b["grappler"] * (f1.get("ground_absorbed_share_l5") or 0.3))
+        a["grappler"] * observed(f2, "ground_absorbed_share_l5", 0.3)
+        - b["grappler"] * observed(f1, "ground_absorbed_share_l5", 0.3))
 
     def minus(x, y):
         return (x - y) if x is not None and y is not None else None

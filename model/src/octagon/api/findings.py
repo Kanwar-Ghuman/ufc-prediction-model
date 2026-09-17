@@ -15,7 +15,8 @@ MODELS = [
     ("p_market", "Market (vig-free)", "Closing odds, overround removed. The benchmark."),
     ("p_lr", "Logistic regression", "Antisymmetric, differential features only."),
     ("p_gbm_cal", "LightGBM (calibrated)", "Seed-ensembled, isotonic-calibrated."),
-    ("p_blend", "Blend (shipped)", "0.25 x logistic + 0.75 x calibrated LightGBM."),
+    ("p_blend", "Skill blend", "Frozen convex mix of logistic and calibrated LightGBM."),
+    ("p_shipped", "Shipped prediction", "Skill blend plus the market layer when odds exist."),
 ]
 
 
@@ -187,7 +188,8 @@ def abstain_curve(split: str) -> dict | None:
     if df is None or "p_blend" not in df:
         return None
     y = df["label"].to_numpy(dtype=float)
-    p = df["p_blend"].to_numpy()
+    probability_column = "p_shipped" if "p_shipped" in df else "p_blend"
+    p = df[probability_column].to_numpy()
     cfg = config()["abstain"]
     points = []
     for half_width in np.arange(0.0, 0.155, 0.01):
@@ -364,9 +366,9 @@ def card_detail(slug: str) -> dict | None:
         p = float(row["p_f1_wins"])
         low, high = config()["abstain"]["low"], config()["abstain"]["high"]
         pick_corner = "f1" if p >= 0.5 else "f2"
-        outcome_col, outcome_p = max(
-            ((c, joint[c]) for c in columns if c.startswith(pick_corner)),
-            key=lambda pair: pair[1])
+        called = bool(row.get("call_all", False)) or not (low <= p <= high)
+        selected = finish_round.select_outcome(joint, pick_corner)
+        outcome_col = selected["column"]
         bouts.append({
             "f1": row["f1_name"], "f2": row["f2_name"],
             "f1_media": fighter_media(row["f1_name"]),
@@ -381,15 +383,20 @@ def card_detail(slug: str) -> dict | None:
             "p_market": _opt_float(row.get("p_market")),
             "pick": row["f1_name"] if p >= 0.5 else row["f2_name"],
             "confidence": max(p, 1.0 - p),
-            "called": not (low <= p <= high),
+            "called": called,
+            "prediction_mode": row.get("prediction_mode", "market_aware"),
             "top_outcome": {
                 "label": _outcome_phrase(outcome_col),
-                "probability": outcome_p,
+                "probability": selected["exact_probability"],
+                "method": selected["method"],
+                "round": selected["round"],
+                "method_probability": selected["method_probability"],
+                "round_probability": selected["round_probability"],
             },
             "statement": (
                 f"{row['f1_name'] if p >= 0.5 else row['f2_name']} "
                 f"{_outcome_phrase(outcome_col)}"
-                if not (low <= p <= high) else None),
+                if called else None),
             "context": _bout_context(row),
             "drivers": _drivers(row),
             "methods": {

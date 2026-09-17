@@ -63,7 +63,9 @@ function HeldOutStats({
   test: SplitMetrics | null;
   updatedAt: string | null;
 }) {
-  const shipped = test?.models.find((m) => m.key === "p_blend");
+  const shipped =
+    test?.models.find((m) => m.key === "p_shipped") ??
+    test?.models.find((m) => m.key === "p_blend");
   return (
     <div className="flex flex-wrap items-center gap-x-8 gap-y-3 border border-line bg-paper px-5 py-3">
       <div>

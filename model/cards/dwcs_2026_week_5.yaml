@@ -1,0 +1,69 @@
+# Dana White's Contender Series 2026: Week 5 (Season 10, Episode 5)
+# Tuesday 2026-09-08, Meta Apex, Las Vegas. Five fights, UFC contracts on the line.
+#
+# Contender Series, not a UFC card: nine of ten fighters are making their first
+# appearance under the UFC banner. Won Il Kwon is a DWCS returnee (lost to
+# Juan Diaz last season) but still has no ufcstats history, so UFC-history
+# features are missing on BOTH corners of every bout. Since v3.2 the skill
+# side is the fighters' full regional records (Sherdog, resolved by the event
+# page) and the career-view features learned from ~1,700 past UFC debutants.
+# v3.3 adds regional Elo, a capped dual-debut skill mix from those careers,
+# and Tapology best-rank nudges. Odds still do much of the work.
+#
+# Rankings and regions are Tapology best-rank / circuit labels as listed
+# on the event page 2026-09-08. Lower rank number is better.
+#
+# Short-notice / catchweight notes (not model features; for the report):
+# - Christian Echols replaced Kozák's original opponent on short notice and
+#   missed middleweight by 3 lb (189). Bout proceeds; Echols is fined.
+# - Christian Natividad replaced Frank da Silva Castro opposite Colton Loud.
+#
+# ODDS PROVENANCE — The Odds API US-book median decimal moneylines, fetched
+# 2026-09-08. predict.py strips the vig.
+#
+# Sherdog event page (fighter identities):
+# https://www.sherdog.com/events/Dana-Whites-Contender-Series-Contender-Series-2026-Week-5-112631
+date: '2026-09-08'
+event: "Dana White's Contender Series 2026: Week 5"
+fights:
+  - fighter1: Arlind Berisha
+    fighter2: Quentin Pasley
+    weight_class: Light Heavyweight
+    rounds: 3
+    section: Main event
+    title_fight: false
+    odds: [1.69, 2.20]        # Berisha ~-145 / Pasley ~+120
+    ranking: [79, 98]
+    region: [Europe, North America]
+  - fighter1: Isaac Moreno
+    fighter2: Reginaldo Junior
+    weight_class: Welterweight
+    rounds: 3
+    section: Main card
+    odds: [1.79, 2.08]        # Moreno ~-127 / Junior ~+108
+    ranking: [58, 20]
+    region: [North America, South America]
+  - fighter1: Martin Kozák
+    fighter2: Christian Echols
+    weight_class: Middleweight
+    rounds: 3
+    section: Main card
+    odds: [1.12, 6.50]        # Kozák ~-833 / Echols ~+550
+    ranking: [58, 139]
+    region: [Europe, North America]
+  - fighter1: Won Il Kwon
+    fighter2: Apollo Gomes
+    weight_class: Bantamweight
+    rounds: 3
+    section: Main card
+    odds: [1.77, 2.10]        # Kwon ~-130 / Gomes ~+110
+    ranking: [39, 38]
+    region: [Asia Pacific, South America]
+  - fighter1: Colton Loud
+    fighter2: Christian Natividad
+    weight_class: Flyweight
+    rounds: 3
+    section: Main card
+    odds: [3.66, 1.31]        # Loud ~+266 / Natividad ~-323
+    ranking: [45, 13]
+    region: [North America, North America]
