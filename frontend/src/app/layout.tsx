@@ -28,7 +28,7 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col">
         <header className="chrome chrome-edge sticky top-0 z-10">
-          <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-7 gap-y-2 px-5 py-3.5 sm:px-8">
+          <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-7 gap-y-2 px-5 py-3.5 sm:px-8">
             <Link href="/" className="display display-title text-xl">
               Octagon
             </Link>
@@ -46,12 +46,12 @@ export default function RootLayout({
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-4xl flex-1 px-5 py-8 sm:px-8 sm:py-12">
+        <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8 sm:px-8 sm:py-12">
           {children}
         </main>
 
         <footer className="mt-16 border-t border-line/70">
-          <div className="mx-auto flex max-w-4xl flex-wrap justify-between gap-2 px-5 py-6 text-xs text-mist sm:px-8">
+          <div className="mx-auto flex max-w-5xl flex-wrap justify-between gap-2 px-5 py-6 text-xs text-mist sm:px-8">
             <p>
               Educational project. Not betting advice — the model does not beat
               the market.
