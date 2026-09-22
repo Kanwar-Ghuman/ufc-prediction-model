@@ -3,7 +3,19 @@ import type { Calibration } from "@/lib/api";
 const SIZE = 260;
 const PAD = 34;
 
-const SERIES_COLORS = ["#f5f5f7", "#ef3b3e", "#4da3e8", "#d9a13d"];
+/* Colour by role, not by position: the shipped model is the line the reader
+   is here for, the market is the bar it is measured against, and the rest are
+   working models that should recede. */
+const SERIES_COLORS: Record<string, string> = {
+  p_shipped: "#ef3b3e",
+  p_market: "#f5f5f7",
+  p_blend: "#d9a13d",
+  p_lr: "#4da3e8",
+  p_gbm_cal: "#32c26f",
+};
+const FALLBACK = "#a4a4ad";
+
+const colorFor = (key: string) => SERIES_COLORS[key] ?? FALLBACK;
 
 export function ReliabilityChart({ series }: { series: Calibration["series"] }) {
   const x = (v: number) => PAD + v * (SIZE - PAD * 2);
@@ -13,7 +25,7 @@ export function ReliabilityChart({ series }: { series: Calibration["series"] }) 
     <div className="flex flex-wrap items-start gap-6">
       <svg
         viewBox={`0 0 ${SIZE} ${SIZE}`}
-        className="h-64 w-64 shrink-0"
+        className="h-72 w-72 shrink-0"
         role="img"
         aria-label="Reliability diagram: predicted probability against observed win rate"
       >
@@ -22,6 +34,7 @@ export function ReliabilityChart({ series }: { series: Calibration["series"] }) 
           y={PAD}
           width={SIZE - PAD * 2}
           height={SIZE - PAD * 2}
+          rx={6}
           fill="none"
           stroke="var(--color-line)"
         />
@@ -33,15 +46,17 @@ export function ReliabilityChart({ series }: { series: Calibration["series"] }) 
           strokeDasharray="4 3"
           stroke="var(--color-rail)"
         />
-        {series.map((s, i) => (
+        {series.map((s) => (
           <polyline
             key={s.key}
             points={s.bins
               .map((b) => `${x(b.predicted)},${y(b.observed)}`)
               .join(" ")}
             fill="none"
-            stroke={SERIES_COLORS[i % SERIES_COLORS.length]}
-            strokeWidth={1.75}
+            stroke={colorFor(s.key)}
+            strokeWidth={s.key === "p_shipped" ? 2.25 : 1.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
         ))}
         {[0, 0.5, 1].map((t) => (
@@ -89,12 +104,12 @@ export function ReliabilityChart({ series }: { series: Calibration["series"] }) 
         </text>
       </svg>
 
-      <ul className="space-y-2 text-sm">
-        {series.map((s, i) => (
-          <li key={s.key} className="flex items-center gap-2">
+      <ul className="space-y-2.5 text-sm">
+        {series.map((s) => (
+          <li key={s.key} className="flex items-center gap-2.5">
             <span
-              className="inline-block h-0.5 w-5"
-              style={{ background: SERIES_COLORS[i % SERIES_COLORS.length] }}
+              className="inline-block h-0.5 w-5 rounded-full"
+              style={{ background: colorFor(s.key) }}
             />
             <span className="text-ink">{s.model}</span>
             <span className="num text-xs text-ash">ECE {s.ece.toFixed(3)}</span>

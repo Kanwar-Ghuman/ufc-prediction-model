@@ -60,7 +60,7 @@ function HeldOutStats({
     test?.models.find((m) => m.key === "p_blend");
   return (
     <div className="rounded-2xl border border-line bg-paper px-5 py-4 sm:px-6">
-      <div className="flex flex-wrap items-end gap-x-10 gap-y-4">
+      <div className="flex flex-wrap items-start gap-x-10 gap-y-4">
         <div>
           <p className="text-xs text-mist">Held-out test</p>
           <p className="mt-1 text-sm text-ash">

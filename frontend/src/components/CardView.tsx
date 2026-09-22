@@ -39,7 +39,9 @@ export function EventHero({
       </h1>
       <p className="mt-3 text-sm text-ash">
         {eventDate(card.date, { year: "numeric" })} · {card.bouts.length} bouts
-        <span className="text-mist"> · frozen {stamp(card.predicted_at)}</span>
+      </p>
+      <p className="mt-1 text-xs text-mist">
+        Frozen {stamp(card.predicted_at)}
       </p>
       {card.headline && <HeadlineCall headline={card.headline} />}
     </header>
