@@ -7,32 +7,32 @@ export function ScorecardPanel({ scorecard }: { scorecard: Scorecard }) {
   return (
     <Panel
       title="How it went"
-      subtitle="Graded against ufcstats results, using the probabilities published before the card."
+      subtitle="Graded against the probabilities published before the card."
     >
       <dl className="grid grid-cols-2 gap-6 sm:grid-cols-4">
         <Stat
           label="Winners"
           value={`${a.winners_correct}/${a.n}`}
-          hint={`${pct(a.accuracy)} — a coin flip expects ${(a.n / 2).toFixed(1)}`}
+          hint={`${pct(a.accuracy)} · coin flip ${(a.n / 2).toFixed(1)}`}
         />
         <Stat
           label="Log loss"
           value={num(a.log_loss)}
-          hint="0.6931 is no skill"
+          hint="coin flip 0.6931"
         />
         <Stat
           label="Method"
           value={`${a.method_correct}/${a.n}`}
-          hint="KO / submission / decision"
+          hint="KO, submission, decision"
         />
         <Stat
           label="Round"
           value={`${a.round_correct}/${a.n_finishes}`}
-          hint="given the fighter and method"
+          hint="of finishes"
         />
       </dl>
 
-      <div className="mt-6">
+      <div className="mt-8">
         <Table head={["Fight", "Pick", "Result", "Winner", "Method", "Round"]}>
           {scorecard.fights.map((f) => (
             <Row key={`${f.f1}-${f.f2}`}>
@@ -41,7 +41,7 @@ export function ScorecardPanel({ scorecard }: { scorecard: Scorecard }) {
               </Cell>
               <Cell>
                 {f.pick}{" "}
-                <span className="font-mono text-xs text-ash">
+                <span className="num text-xs text-ash">
                   {pct(f.confidence)}
                 </span>
                 {!f.called && (
@@ -93,12 +93,11 @@ export function ScorecardPanel({ scorecard }: { scorecard: Scorecard }) {
       </div>
 
       {a.mean_p_actual !== null && a.mean_p_actual_base !== null && (
-        <p className="mt-4 text-sm text-ash">
-          Across every way a fight can end, the model put{" "}
-          <span className="font-mono">{num(a.mean_p_actual, 3)}</span> on what
-          actually happened, against{" "}
-          <span className="font-mono">{num(a.mean_p_actual_base, 3)}</span> for a
-          coin flip times the historical method and round mix.
+        <p className="mt-5 text-sm text-ash">
+          On the exact way each fight ended, the model averaged{" "}
+          <span className="num text-ink">{num(a.mean_p_actual, 3)}</span> against
+          a base rate of{" "}
+          <span className="num">{num(a.mean_p_actual_base, 3)}</span>.
         </p>
       )}
     </Panel>

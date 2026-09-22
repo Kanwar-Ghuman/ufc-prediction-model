@@ -20,8 +20,11 @@ export default async function CardPage(props: PageProps<"/cards/[slug]">) {
   }
 
   return (
-    <div className="space-y-8">
-      <Link href="/cards" className="label text-[11px] text-ash hover:text-ink">
+    <div className="space-y-10">
+      <Link
+        href="/cards"
+        className="pressable inline-block text-sm text-ash hover:text-ink"
+      >
         ← All cards
       </Link>
 

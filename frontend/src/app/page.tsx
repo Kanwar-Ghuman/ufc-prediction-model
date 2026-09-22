@@ -18,9 +18,9 @@ export default async function HomePage() {
   if (!card.ok) {
     return (
       <div className="space-y-6">
-        <div className="border-b-4 border-blood pb-4">
-          <h1 className="display text-4xl">Octagon</h1>
-          <p className="mt-2 max-w-2xl text-sm text-ash">
+        <div>
+          <h1 className="display display-hero text-4xl sm:text-5xl">Octagon</h1>
+          <p className="mt-3 max-w-lg text-sm text-ash">
             Calibrated win, method and round probabilities for upcoming UFC
             cards.
           </p>
@@ -31,7 +31,7 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <EventHero card={card.data} />
 
       <HeldOutStats
@@ -67,40 +67,42 @@ function HeldOutStats({
     test?.models.find((m) => m.key === "p_shipped") ??
     test?.models.find((m) => m.key === "p_blend");
   return (
-    <div className="flex flex-wrap items-center gap-x-8 gap-y-3 border border-line bg-paper px-5 py-3">
-      <div>
-        <p className="label text-[10px] text-mist">Held-out test</p>
-        <p className="text-xs text-ash">
-          {test
-            ? `${test.n_fights.toLocaleString()} fights, ${test.date_range[0]} to ${test.date_range[1]}`
-            : "not evaluated yet"}
-        </p>
-      </div>
-      {shipped && (
-        <>
-          <Figure label="Accuracy" value={pct(shipped.accuracy, 1)} />
-          <Figure
-            label="Log loss"
-            value={num(shipped.log_loss)}
-            hint="0.6931 = coin flip"
-          />
-          <Figure
-            label="Calibration"
-            value={num(shipped.ece, 3)}
-            hint="mean gap, lower is better"
-          />
-        </>
-      )}
-      <div className="ml-auto text-right">
-        {updatedAt && (
-          <p className="text-[11px] text-mist">Model run {stamp(updatedAt)}</p>
+    <div className="rounded-2xl border border-line bg-paper px-5 py-4 sm:px-6">
+      <div className="flex flex-wrap items-end gap-x-10 gap-y-4">
+        <div>
+          <p className="text-xs text-mist">Held-out test</p>
+          <p className="mt-1 text-sm text-ash">
+            {test
+              ? `${test.n_fights.toLocaleString()} fights since ${test.date_range[0].slice(0, 4)}`
+              : "Not evaluated yet"}
+          </p>
+        </div>
+        {shipped && (
+          <>
+            <Figure label="Accuracy" value={pct(shipped.accuracy, 1)} />
+            <Figure
+              label="Log loss"
+              value={num(shipped.log_loss)}
+              hint="coin flip 0.6931"
+            />
+            <Figure
+              label="Calibration"
+              value={num(shipped.ece, 3)}
+              hint="lower is better"
+            />
+          </>
         )}
-        <Link
-          href="/results"
-          className="label text-[11px] text-blood hover:underline"
-        >
-          Full results →
-        </Link>
+        <div className="ml-auto text-right">
+          {updatedAt && (
+            <p className="text-xs text-mist">Run {stamp(updatedAt)}</p>
+          )}
+          <Link
+            href="/results"
+            className="pressable text-sm text-blood hover:underline"
+          >
+            Full results
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -117,9 +119,11 @@ function Figure({
 }) {
   return (
     <div>
-      <p className="label text-[10px] text-mist">{label}</p>
-      <p className="display text-lg tabular-nums">{value}</p>
-      {hint && <p className="text-[10px] text-mist">{hint}</p>}
+      <p className="text-xs text-mist">{label}</p>
+      <p className="display display-title mt-0.5 text-lg tabular-nums">
+        {value}
+      </p>
+      {hint && <p className="text-xs text-mist">{hint}</p>}
     </div>
   );
 }

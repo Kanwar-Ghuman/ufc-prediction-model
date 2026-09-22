@@ -1,28 +1,33 @@
 @import "tailwindcss";
 
 /**
- * Dark broadcast theme — same layout as before, night-card palette.
- * Near-black shell with a faint crimson vignette so the page feels like an
- * arena under the lights rather than a flat dashboard.
+ * Dark broadcast theme. The shell is near-black so the cards read as lit
+ * surfaces above it; chrome is translucent so content passes under it
+ * rather than behind an opaque strip.
  */
 
 @theme {
-  --color-shell: #08080a; /* page behind the cards */
-  --color-paper: #121215; /* the cards themselves */
-  --color-ink: #f4f4f5; /* headlines, names */
-  --color-ash: #a1a1aa; /* secondary type */
-  --color-mist: #67676f; /* tertiary: hints, disabled */
-  --color-line: #2a2a30; /* hairline rules */
-  --color-rail: #3f3f46; /* stronger rules, chart axes */
-  --color-blood: #e62629; /* UFC red, lifted for dark contrast */
-  --color-blood-dim: #3a1113; /* red at fill strength */
+  --color-shell: #09090b; /* page behind the cards */
+  --color-paper: #141417; /* the cards themselves */
+  --color-raise: #1c1c21; /* a surface sitting on a card */
+  --color-ink: #f5f5f7; /* headlines, names */
+  --color-ash: #a4a4ad; /* secondary type */
+  --color-mist: #6e6e78; /* tertiary: hints, disabled */
+  --color-line: #232328; /* hairline rules */
+  --color-rail: #3a3a42; /* stronger rules, chart axes */
+  --color-blood: #ef3b3e; /* UFC red, lifted for dark contrast */
   --color-gold: #d9a13d; /* title fights */
-  --color-hit: #2fbf71; /* graded: correct */
+  --color-hit: #32c26f; /* graded: correct */
   --color-miss: #ff5d55; /* graded: wrong */
 
   --font-display: var(--font-oswald), "Arial Narrow", sans-serif;
   --font-sans: var(--font-inter), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* Critically damped: it arrives and settles, it never overshoots. Bounce
+     belongs to motion the reader started with a drag, and nothing here is
+     dragged. */
+  --ease-settle: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 :root {
@@ -31,31 +36,88 @@
 
 body {
   background-color: var(--color-shell);
-  background-image:
-    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(230, 38, 41, 0.14), transparent 55%),
-    radial-gradient(ellipse 80% 50% at 100% 100%, rgba(217, 161, 61, 0.05), transparent 45%),
-    linear-gradient(180deg, #0c0c0e 0%, var(--color-shell) 40%, #060607 100%);
-  background-attachment: fixed;
+  /* One soft source above the fold instead of three stacked washes — the
+     page should feel lit, not decorated. */
+  background-image: radial-gradient(
+    ellipse 100% 60% at 50% -10%,
+    rgba(239, 59, 62, 0.1),
+    transparent 60%
+  );
+  background-repeat: no-repeat;
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Condensed capitals do all the shouting, and every use wants the same
-   tracking — so it lives here instead of in six components. */
+/* Tracking is size-specific: condensed capitals drift apart as they grow, so
+   the large sizes pull in and the small ones open up. One letter-spacing for
+   every size would be wrong at both ends. */
 .display {
   font-family: var(--font-display);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.01em;
-  line-height: 1.05;
+  letter-spacing: 0.005em;
+  line-height: 1.08;
+}
+
+.display-hero {
+  letter-spacing: -0.02em;
+  line-height: 0.96;
+}
+
+.display-title {
+  letter-spacing: -0.01em;
+  line-height: 1.02;
 }
 
 .label {
   font-family: var(--font-display);
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.09em;
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Translucent chrome: content scrolls under it, and the edge is a short fade
+   instead of a hairline, so the border only appears where it is earning its
+   keep. */
+.chrome {
+  background-color: color-mix(in srgb, var(--color-shell) 72%, transparent);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+}
+
+.chrome-edge::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  height: 20px;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--color-shell) 55%, transparent),
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* Feedback lands on press, not on release, and it is the same gesture in
+   reverse when the finger lifts. */
+.pressable {
+  transition:
+    transform 260ms var(--ease-settle),
+    background-color 200ms var(--ease-settle),
+    border-color 200ms var(--ease-settle);
+}
+
+.pressable:active {
+  transform: scale(0.99);
+  transition-duration: 90ms;
 }
 
 /* Fighter cut-outs are framed head-and-shoulders, so they anchor to the
@@ -63,4 +125,34 @@ body {
 .portrait {
   object-fit: cover;
   object-position: top center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pressable,
+  .pressable:active {
+    transform: none;
+    transition-duration: 1ms;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .chrome {
+    background-color: var(--color-shell);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --color-ash: #d4d4d8;
+    --color-mist: #a1a1aa;
+    --color-line: #45454d;
+  }
+
+  .chrome {
+    background-color: var(--color-shell);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }

@@ -10,8 +10,10 @@ function Monogram({ name }: { name: string }) {
     .map((part) => part[0] ?? "")
     .join("");
   return (
-    <div className="flex h-full w-full items-center justify-center bg-linear-to-b from-line to-shell">
-      <span className="display text-3xl text-mist sm:text-4xl">{initials}</span>
+    <div className="flex h-full w-full items-center justify-center bg-linear-to-b from-raise to-shell">
+      <span className="display display-title text-2xl text-mist sm:text-4xl">
+        {initials}
+      </span>
     </div>
   );
 }
@@ -27,7 +29,7 @@ export function Portrait({
 }) {
   const src = portraitUrl(media.portrait);
   return (
-    <div className="h-20 w-14 shrink-0 overflow-hidden sm:h-40 sm:w-36">
+    <div className="h-20 w-14 shrink-0 overflow-hidden rounded-xl bg-raise/60 sm:h-36 sm:w-32">
       {src ? (
         // Mirror the right-hand fighter so the pair face each other, the way
         // a broadcast card frames them. Only the photo flips — a mirrored
@@ -68,25 +70,25 @@ export function Nameplate({
   const flag = flagEmoji(media.country_code);
   const align = side === "left" ? "items-start text-left" : "items-end text-right";
   return (
-    <div className={`flex min-w-0 flex-col gap-1 ${align}`}>
+    <div className={`flex min-w-0 flex-col gap-1.5 ${align}`}>
       {media.rank && (
-        <span className="label text-[11px] text-ash">#{media.rank}</span>
+        <span className="text-[11px] text-mist">#{media.rank}</span>
       )}
       <h3
-        className={`display w-full min-w-0 text-sm leading-tight wrap-break-word sm:text-2xl ${
+        className={`display display-title w-full min-w-0 text-sm wrap-break-word sm:text-2xl ${
           winner ? "text-ink" : "text-ash"
         }`}
       >
         {name}
       </h3>
-      {winner && <span className="h-0.5 w-10 bg-blood" />}
+      {winner && <span className="h-0.5 w-10 rounded-full bg-blood" />}
       {media.nickname && (
         <span className="truncate text-xs text-mist italic">
           &ldquo;{media.nickname}&rdquo;
         </span>
       )}
       <div
-        className={`flex flex-wrap items-center gap-x-2 text-xs text-ash ${
+        className={`flex flex-wrap items-center gap-x-2 text-xs text-mist ${
           side === "right" ? "justify-end" : ""
         }`}
       >
@@ -96,7 +98,7 @@ export function Nameplate({
           </span>
         )}
         {media.country && <span className="hidden sm:inline">{media.country}</span>}
-        {media.record && <span className="font-mono">{media.record}</span>}
+        {media.record && <span className="num">{media.record}</span>}
       </div>
     </div>
   );

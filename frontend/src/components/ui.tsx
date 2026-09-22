@@ -10,10 +10,10 @@ export function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="border border-line bg-paper p-5">
-      {title && <h2 className="display text-xl">{title}</h2>}
-      {subtitle && <p className="mt-1 max-w-2xl text-sm text-ash">{subtitle}</p>}
-      <div className={title || subtitle ? "mt-4" : ""}>{children}</div>
+    <section className="rounded-2xl border border-line bg-paper p-5 sm:p-6">
+      {title && <h2 className="display display-title text-xl">{title}</h2>}
+      {subtitle && <p className="mt-1.5 max-w-xl text-sm text-ash">{subtitle}</p>}
+      <div className={title || subtitle ? "mt-5" : ""}>{children}</div>
     </section>
   );
 }
@@ -29,9 +29,9 @@ export function Stat({
 }) {
   return (
     <div>
-      <dt className="label text-[10px] text-mist">{label}</dt>
-      <dd className="display mt-1 text-2xl tabular-nums">{value}</dd>
-      {hint && <p className="mt-1 text-xs text-ash">{hint}</p>}
+      <dt className="text-xs text-mist">{label}</dt>
+      <dd className="display display-title mt-1 text-2xl tabular-nums">{value}</dd>
+      {hint && <p className="mt-0.5 text-xs text-mist">{hint}</p>}
     </div>
   );
 }
@@ -44,19 +44,19 @@ export function ApiNotice({
 }) {
   const offline = result.kind === "offline";
   return (
-    <div
-      className={`border-l-4 bg-paper p-4 text-sm ${
-        offline ? "border-blood" : "border-rail"
-      }`}
-    >
-      <p className="label text-xs">
+    <div className="rounded-2xl border border-line bg-paper p-5">
+      <p
+        className={`display display-title text-base ${
+          offline ? "text-blood" : "text-ink"
+        }`}
+      >
         {offline
           ? "API not running"
           : result.kind === "missing"
-            ? "Nothing to show yet"
+            ? "Nothing here yet"
             : "Something went wrong"}
       </p>
-      <p className="mt-1 text-ash">{result.message}</p>
+      <p className="mt-1.5 text-sm text-ash">{result.message}</p>
     </div>
   );
 }
@@ -72,9 +72,9 @@ export function Table({
     <div className="overflow-x-auto">
       <table className="w-full border-collapse text-sm">
         <thead>
-          <tr className="border-b-2 border-ink text-left">
+          <tr className="border-b border-line text-left">
             {head.map((h) => (
-              <th key={h} className="label py-2 pr-4 text-[10px] text-ash">
+              <th key={h} className="py-2 pr-4 text-xs font-medium text-mist">
                 {h}
               </th>
             ))}
@@ -87,7 +87,7 @@ export function Table({
 }
 
 export function Row({ children }: { children: React.ReactNode }) {
-  return <tr className="border-b border-line last:border-0">{children}</tr>;
+  return <tr className="border-b border-line/60 last:border-0">{children}</tr>;
 }
 
 export function Cell({
@@ -101,7 +101,7 @@ export function Cell({
 }) {
   return (
     <td
-      className={`py-2 pr-4 ${mono ? "font-mono tabular-nums" : ""} ${
+      className={`py-2.5 pr-4 ${mono ? "num" : ""} ${
         muted ? "text-ash" : "text-ink"
       }`}
     >
@@ -118,14 +118,14 @@ export function Badge({
   tone?: "neutral" | "good" | "bad" | "muted";
 }) {
   const tones = {
-    neutral: "border-rail text-ash",
-    good: "border-hit/40 text-hit",
-    bad: "border-miss/40 text-miss",
-    muted: "border-line text-mist",
+    neutral: "bg-raise text-ash",
+    good: "bg-hit/15 text-hit",
+    bad: "bg-miss/15 text-miss",
+    muted: "bg-raise text-mist",
   };
   return (
     <span
-      className={`label inline-block border px-1.5 py-0.5 text-[10px] whitespace-nowrap ${tones[tone]}`}
+      className={`inline-block rounded-full px-2 py-0.5 text-xs whitespace-nowrap ${tones[tone]}`}
     >
       {children}
     </span>

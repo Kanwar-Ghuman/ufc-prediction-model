@@ -27,14 +27,18 @@ export default function RootLayout({
       className={`${oswald.variable} ${inter.variable} ${geistMono.variable} h-full`}
     >
       <body className="flex min-h-full flex-col">
-        <header className="sticky top-0 z-10 border-b border-line bg-paper">
-          <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 sm:px-8">
-            <Link href="/" className="flex items-baseline gap-2">
-              <span className="display text-xl">Octagon</span>
+        <header className="chrome chrome-edge sticky top-0 z-10">
+          <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-7 gap-y-2 px-5 py-3.5 sm:px-8">
+            <Link href="/" className="display display-title text-xl">
+              Octagon
             </Link>
-            <nav className="label flex gap-5 text-[11px] text-ash">
+            <nav className="flex gap-6 text-sm text-ash">
               {NAV.map((item) => (
-                <Link key={item.href} href={item.href} className="hover:text-ink">
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="pressable hover:text-ink"
+                >
                   {item.label}
                 </Link>
               ))}
@@ -42,18 +46,15 @@ export default function RootLayout({
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-8 sm:py-10">
+        <main className="mx-auto w-full max-w-4xl flex-1 px-5 py-8 sm:px-8 sm:py-12">
           {children}
         </main>
 
-        <footer className="mt-8 border-t border-line bg-paper">
-          <div className="mx-auto max-w-5xl space-y-1 px-4 py-5 text-xs text-mist sm:px-8">
+        <footer className="mt-16 border-t border-line/70">
+          <div className="mx-auto flex max-w-4xl flex-wrap justify-between gap-2 px-5 py-6 text-xs text-mist sm:px-8">
+            <p>Educational project. Not betting advice.</p>
             <p>
-              Educational project. Not betting advice — the backtest shows this
-              model does not beat the market.
-            </p>
-            <p>
-              Fighter portraits, records and rankings from{" "}
+              Portraits and records from{" "}
               <a
                 className="underline underline-offset-2 hover:text-ash"
                 href="https://www.ufc.com/athletes"
@@ -62,8 +63,7 @@ export default function RootLayout({
               >
                 ufc.com
               </a>
-              ; flags and biographies from Wikipedia and Wikidata. Cached
-              locally by <code className="font-mono">octagon fetch-media</code>.
+              .
             </p>
           </div>
         </footer>
