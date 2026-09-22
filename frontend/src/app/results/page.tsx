@@ -10,25 +10,23 @@ const SPLITS = [
     split: "valid",
     title: "Validation (2022–2023)",
     subtitle:
-      "Used during development to choose between models. This era has odds coverage, so it is the only place a fair model-vs-market comparison exists.",
+      "Used to choose between models. The only split with odds, so the only fair market comparison.",
   },
   {
     split: "test",
     title: "Test (2024 onward)",
-    subtitle:
-      "Touched once, at the end. The odds source stops in 2023, so there is no market row here.",
+    subtitle: "Touched once, at the end. No odds coverage, so no market row.",
   },
 ];
 
 export default function ResultsPage() {
   return (
-    <div className="space-y-8">
-      <div className="border-b-4 border-blood pb-4">
-        <h1 className="display text-4xl">Results</h1>
-        <p className="mt-2 max-w-2xl text-sm text-ash">
-          Walk-forward evaluation: for every fight, the model is trained only on
-          fights that happened before it. A coin flip scores 0.6931 log loss and
-          0.25 Brier — those are the numbers to beat.
+    <div className="space-y-10">
+      <div>
+        <h1 className="display display-hero text-4xl sm:text-5xl">Results</h1>
+        <p className="mt-3 max-w-lg text-sm text-ash">
+          Every fight is scored by a model trained only on fights before it. A
+          coin flip scores 0.6931 log loss — that is the bar.
         </p>
       </div>
 
@@ -86,15 +84,15 @@ async function Section({
             </Table>
 
             {metrics.data.abstain && (
-              <div className="mt-6">
-                <h3 className="label text-[10px] text-mist">
+              <div className="mt-8">
+                <h3 className="display display-title text-base">
                   Abstain trade-off
                 </h3>
-                <p className="mt-1 mb-3 text-sm text-ash">
-                  Widening the no-call band raises accuracy on the fights that
-                  remain, by answering fewer of them. Shipped band:{" "}
-                  <span className="font-mono">
-                    {metrics.data.abstain.shipped_band.join(" – ")}
+                <p className="mt-1.5 mb-4 max-w-xl text-sm text-ash">
+                  A wider no-call band answers fewer fights and gets more of
+                  them right. Shipped band{" "}
+                  <span className="num text-ink">
+                    {metrics.data.abstain.shipped_band.join("–")}
                   </span>
                   .
                 </p>

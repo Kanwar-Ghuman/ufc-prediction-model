@@ -11,13 +11,12 @@ export default async function CardsPage() {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className="space-y-6">
-      <div className="border-b-4 border-blood pb-4">
-        <h1 className="display text-4xl">All cards</h1>
-        <p className="mt-2 max-w-2xl text-sm text-ash">
-          Predictions frozen at the moment they were made, before the fights
-          happened. Once results land in the database each card is graded
-          against those exact numbers rather than a refit.
+    <div className="space-y-8">
+      <div>
+        <h1 className="display display-hero text-4xl sm:text-5xl">All cards</h1>
+        <p className="mt-3 max-w-lg text-sm text-ash">
+          Every card, frozen before it happened and graded against those exact
+          numbers once results land.
         </p>
       </div>
 
@@ -27,30 +26,29 @@ export default async function CardsPage() {
         <Panel>
           <p className="text-sm text-ash">
             No cards predicted yet. Run{" "}
-            <code className="font-mono">octagon fetch-card</code>, then{" "}
-            <code className="font-mono">
-              octagon predict --card cards/&lt;file&gt;.yaml
-            </code>
-            .
+            <code className="num text-ink">octagon fetch-card</code>, then{" "}
+            <code className="num text-ink">octagon predict</code>.
           </p>
         </Panel>
       ) : (
-        <ul className="space-y-3">
+        <ul className="space-y-2.5">
           {cards.data.map((card) => (
             <li key={card.slug}>
               <Link
                 href={`/cards/${card.slug}`}
-                className="block border border-line bg-paper p-5 transition-colors hover:border-blood"
+                className="pressable block rounded-2xl border border-line bg-paper px-5 py-4 hover:border-rail hover:bg-raise"
               >
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <span className="display text-xl">{card.event}</span>
-                  <span className="label text-[11px] text-ash">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                  <span className="display display-title text-lg">
+                    {card.event}
+                  </span>
+                  <span className="text-xs text-ash">
                     {eventDate(card.date, { year: "numeric" })}
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-mist">
-                  {card.n_bouts} bouts predicted ·{" "}
-                  {card.date >= today ? "upcoming" : "graded once results land"}
+                  {card.n_bouts} bouts ·{" "}
+                  {card.date >= today ? "upcoming" : "graded"}
                 </p>
               </Link>
             </li>

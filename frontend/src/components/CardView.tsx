@@ -30,22 +30,20 @@ export function EventHero({
   eyebrow?: string;
 }) {
   return (
-    <header className="border border-line bg-paper">
-      <div className="border-b-4 border-blood px-5 py-5 sm:px-8 sm:py-7">
-        <p className="label text-[11px] text-blood">
-          {eyebrow ?? (card.upcoming ? "Next card" : "Latest card")}
-        </p>
-        <h1 className="display mt-2 text-3xl sm:text-5xl">{card.event}</h1>
-        <p className="label mt-2 text-xs text-ash sm:text-sm">
-          {eventDate(card.date, { year: "numeric" })} · {card.bouts.length} bouts
-        </p>
-      </div>
-      {card.headline && <HeadlineCall headline={card.headline} />}
-      <p className="px-5 py-2 text-xs text-mist sm:px-8">
-        Probabilities frozen {stamp(card.predicted_at)} by{" "}
-        <code className="font-mono">octagon predict</code> — every rerun of the
-        model republishes this page.
+    <header>
+      <p className="label text-[11px] text-blood">
+        {eyebrow ?? (card.upcoming ? "Next card" : "Latest card")}
       </p>
+      <h1 className="display display-hero mt-3 text-4xl sm:text-6xl">
+        {card.event}
+      </h1>
+      <p className="mt-3 text-sm text-ash">
+        {eventDate(card.date, { year: "numeric" })} · {card.bouts.length} bouts
+      </p>
+      <p className="mt-1 text-xs text-mist">
+        Frozen {stamp(card.predicted_at)}
+      </p>
+      {card.headline && <HeadlineCall headline={card.headline} />}
     </header>
   );
 }
@@ -53,22 +51,18 @@ export function EventHero({
 /**
  * The model's most confident prediction on the card, said in words —
  * word-for-word from the API statement — not just a percentage.
- * The percentages ride along underneath, but the sentence leads.
  */
 function HeadlineCall({ headline }: { headline: Headline }) {
   return (
-    <div className="border-b border-line px-5 py-5 sm:px-8 sm:py-6">
-      <p className="label text-[11px] text-mist">
-        The model&apos;s most confident call
-        {headline.weight_class ? ` · ${headline.weight_class}` : ""}
-      </p>
-      <p className="display mt-3 text-2xl leading-tight text-ink sm:text-4xl">
+    <div className="mt-6 rounded-2xl border border-line bg-paper p-5 sm:p-6">
+      <p className="text-xs text-mist">Most confident call</p>
+      <p className="display display-title mt-2 text-2xl text-ink sm:text-3xl">
         {headline.statement}
       </p>
-      <p className="mt-3 text-xs text-ash">
-        <span className="font-mono text-blood">{pct(headline.confidence)}</span>{" "}
-        to win · this exact ending{" "}
-        <span className="font-mono">{pct(headline.outcome_probability)}</span>
+      <p className="mt-2.5 text-sm text-ash">
+        <span className="num text-blood">{pct(headline.confidence)}</span> to win
+        · <span className="num">{pct(headline.outcome_probability)}</span> this
+        exact ending
       </p>
     </div>
   );
@@ -82,15 +76,14 @@ function SegmentBand({ title, bouts }: { title: string; bouts: Bout[] }) {
       ? called.reduce((sum, b) => sum + b.confidence, 0) / called.length
       : null;
   return (
-    <div className="flex flex-wrap items-baseline justify-between gap-2 border-b-2 border-ink pb-2">
-      <h2 className="display text-2xl sm:text-3xl">{title}</h2>
-      <p className="min-w-0 text-xs text-ash">
+    <div className="flex flex-wrap items-baseline justify-between gap-2 px-1">
+      <h2 className="display display-title text-xl sm:text-2xl">{title}</h2>
+      <p className="text-xs text-mist">
         {bouts.length} bouts
         {lean !== null && (
           <>
             {" · "}
-            <span className="font-mono">{pct(lean)}</span> mean confidence on{" "}
-            {called.length} calls
+            <span className="num">{pct(lean)}</span> average confidence
           </>
         )}
       </p>
@@ -107,7 +100,7 @@ export function CardView({
 }) {
   const results = resultIndex(scorecard ?? null);
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       {segments(card.bouts).map((segment) => (
         <section key={segment.title} className="space-y-3">
           <SegmentBand title={segment.title} bouts={segment.bouts} />

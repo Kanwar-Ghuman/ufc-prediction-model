@@ -13,16 +13,35 @@ function ProbabilityBar({
   const trail = muted ? "bg-line" : "bg-rail";
   const leftLeads = left >= 0.5;
   return (
-    <div className="flex h-1.5 w-full overflow-hidden bg-line">
+    <div className="flex h-1 w-full gap-0.5 overflow-hidden rounded-full">
       <div
-        className={leftLeads ? lead : trail}
+        className={`rounded-full ${leftLeads ? lead : trail}`}
         style={{ width: `${left * 100}%` }}
       />
       <div
-        className={leftLeads ? trail : lead}
+        className={`rounded-full ${leftLeads ? trail : lead}`}
         style={{ width: `${(1 - left) * 100}%` }}
       />
     </div>
+  );
+}
+
+function Tag({
+  children,
+  tone = "plain",
+}: {
+  children: React.ReactNode;
+  tone?: "plain" | "gold" | "solid";
+}) {
+  const tones = {
+    plain: "bg-raise text-ash",
+    gold: "bg-gold/15 text-gold",
+    solid: "bg-ink text-shell",
+  };
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-[11px] ${tones[tone]}`}>
+      {children}
+    </span>
   );
 }
 
@@ -40,33 +59,14 @@ function BoutHeader({ bout }: { bout: Bout }) {
     (n) => n === 0,
   );
   return (
-    <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-b border-line px-4 py-2">
-      <span className="label text-[11px] text-ash">
-        {bout.weight_class ?? "Catchweight"} bout
+    <div className="flex flex-wrap items-center justify-center gap-2 px-4 pt-4 text-[11px] text-mist">
+      <span>
+        {bout.weight_class ?? "Catchweight"} · {bout.scheduled_rounds} rounds
       </span>
-      <span className="text-[11px] text-mist">
-        {bout.scheduled_rounds} rounds
-      </span>
-      {bout.scheduled_rounds === 5 && (
-        <span className="label rounded-xs bg-ink px-1.5 py-0.5 text-[10px] text-paper">
-          Main event
-        </span>
-      )}
-      {!bout.called && (
-        <span className="label rounded-xs border border-rail px-1.5 py-0.5 text-[10px] text-mist">
-          No call
-        </span>
-      )}
-      {shortNotice && (
-        <span className="label rounded-xs border border-gold/50 px-1.5 py-0.5 text-[10px] text-gold">
-          Short notice
-        </span>
-      )}
-      {debut && (
-        <span className="label rounded-xs border border-rail px-1.5 py-0.5 text-[10px] text-ash">
-          UFC debut
-        </span>
-      )}
+      {bout.scheduled_rounds === 5 && <Tag tone="solid">Main event</Tag>}
+      {!bout.called && <Tag>No call</Tag>}
+      {shortNotice && <Tag tone="gold">Short notice</Tag>}
+      {debut && <Tag>UFC debut</Tag>}
     </div>
   );
 }
@@ -85,30 +85,35 @@ function ModelStrip({ bout, result }: { bout: Bout; result?: GradedFight }) {
     : `Lean: ${selectedOutcome}`;
 
   return (
-    <div className="border-t border-line bg-shell/70">
-      <div className="px-4 pt-3 pb-1 text-center">
-        <p className="label text-[10px] text-mist">
-          {bout.called ? "Model prediction" : "Model lean · low confidence"}
+    <div className="px-4 pb-4">
+      <div className="rounded-xl bg-shell/60 px-4 py-4 text-center">
+        <p className="text-[11px] text-mist">
+          {bout.called ? "Prediction" : "Low confidence"}
         </p>
         {result ? (
-          <p
-            className={`label mt-1 text-sm ${
-              !bout.called
-                ? "text-mist"
+          <>
+            <p
+              className={`display display-title mt-1.5 text-lg ${
+                !bout.called
+                  ? "text-mist"
+                  : result.correct
+                    ? "text-hit"
+                    : "text-miss"
+              }`}
+            >
+              {!bout.called
+                ? "Abstained"
                 : result.correct
-                  ? "text-hit"
-                  : "text-miss"
-            }`}
-          >
-            {!bout.called
-              ? "Abstained"
-              : result.correct
-                ? "Called it"
-                : "Missed"}
-          </p>
+                  ? "Called it"
+                  : "Missed"}
+            </p>
+            {/* The verdict alone hides what was actually predicted, which is
+                the thing a reader came to check. */}
+            <p className="mt-1 text-xs text-mist">{prediction}</p>
+          </>
         ) : (
           <p
-            className={`display mt-1 text-lg sm:text-2xl ${
+            className={`display display-title mt-1.5 text-lg sm:text-2xl ${
               bout.called ? "text-ink" : "text-mist"
             }`}
           >
@@ -116,22 +121,25 @@ function ModelStrip({ bout, result }: { bout: Bout; result?: GradedFight }) {
           </p>
         )}
         {bout.top_outcome && !result && <OutcomeBreakdown bout={bout} />}
+
+        <div className="mt-4 flex items-center justify-between gap-4">
+          <span className={`display text-base ${p1 >= 0.5 ? lead : "text-ash"}`}>
+            {pct(p1)}
+          </span>
+          <span className="text-[11px] text-mist">Win probability</span>
+          <span className={`display text-base ${p1 < 0.5 ? lead : "text-ash"}`}>
+            {pct(1 - p1)}
+          </span>
+        </div>
+        <div className="mt-1.5">
+          <ProbabilityBar left={p1} muted={!bout.called} />
+        </div>
       </div>
-      <div className="flex items-center justify-between gap-4 px-4 pb-2">
-        <span className={`display text-base ${p1 >= 0.5 ? lead : "text-ash"}`}>
-          {pct(p1)}
-        </span>
-        <span className="label text-[10px] text-mist">Win probability</span>
-        <span className={`display text-base ${p1 < 0.5 ? lead : "text-ash"}`}>
-          {pct(1 - p1)}
-        </span>
-      </div>
-      <ProbabilityBar left={p1} muted={!bout.called} />
     </div>
   );
 }
 
-/** The selected method first, then the conditional round and exact joint P. */
+/** The selected method, and the round it most likely lands in. */
 function OutcomeBreakdown({ bout }: { bout: Bout }) {
   const outcome = bout.top_outcome;
   const method =
@@ -140,44 +148,18 @@ function OutcomeBreakdown({ bout }: { bout: Bout }) {
       : outcome.method === "SUB"
         ? "Submission"
         : "KO/TKO";
-  const valueTone = bout.called ? "text-blood" : "text-ash";
-  const cell = "border border-line bg-paper/60 px-2 py-2";
+  const tone = bout.called ? "text-blood" : "text-ash";
 
   return (
-    <div
-      className={`mx-auto mt-3 grid max-w-xl gap-1 text-left ${
-        outcome.round == null ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4"
-      }`}
-    >
-      <div className={cell}>
-        <p className="label text-[9px] text-mist">Method</p>
-        <p className={`display mt-0.5 text-sm ${valueTone}`}>{method}</p>
-      </div>
-      <div className={cell}>
-        <p className="label text-[9px] text-mist">Winner + method</p>
-        <p className={`font-mono text-sm font-semibold ${valueTone}`}>
-          {pct(outcome.method_probability)}
-        </p>
-      </div>
-      {outcome.round != null && outcome.round_probability != null && (
-        <>
-          <div className={cell}>
-            <p className="label text-[9px] text-mist">Exact round</p>
-            <p className={`display mt-0.5 text-sm ${valueTone}`}>
-              Round {outcome.round}
-            </p>
-            <p className="text-[9px] text-mist">
-              {pct(outcome.round_probability)} within method
-            </p>
-          </div>
-          <div className={cell}>
-            <p className="label text-[9px] text-mist">Full outcome</p>
-            <p className={`font-mono text-sm font-semibold ${valueTone}`}>
-              {pct(outcome.probability)}
-            </p>
-            <p className="text-[9px] text-mist">winner + method + round</p>
-          </div>
-        </>
+    <div className="mt-3 flex flex-wrap items-baseline justify-center gap-x-5 gap-y-1 text-xs text-mist">
+      <span>
+        {method} <span className={`num ${tone}`}>{pct(outcome.method_probability)}</span>
+      </span>
+      {outcome.round != null && (
+        <span>
+          Round {outcome.round}{" "}
+          <span className={`num ${tone}`}>{pct(outcome.probability)}</span>
+        </span>
       )}
     </div>
   );
@@ -190,10 +172,10 @@ function ResultLine({ result }: { result: GradedFight }) {
       ? `${result.method}, round ${result.end_round}`
       : result.method ?? "decision";
   return (
-    <div className="flex flex-wrap items-center justify-center gap-x-2 border-t border-line bg-ink px-4 py-1.5 text-center">
-      <span className="label text-[10px] text-mist">Result</span>
-      <span className="display text-sm text-paper">{result.winner}</span>
-      <span className="text-xs text-mist">{finish}</span>
+    <div className="flex flex-wrap items-center justify-center gap-x-2 border-t border-line px-4 py-2.5 text-center text-xs">
+      <span className="text-mist">Result</span>
+      <span className="display text-sm text-ink">{result.winner}</span>
+      <span className="text-ash">{finish}</span>
     </div>
   );
 }
@@ -211,50 +193,45 @@ function EndingGrid({ bout }: { bout: Bout }) {
     <div className="overflow-x-auto">
       <table className="w-full border-collapse text-xs whitespace-nowrap">
         <thead>
-          <tr className="border-b border-line text-left">
-            <th className="label py-1 pr-3 text-[10px] font-medium text-mist">
-              Ending
-            </th>
+          <tr className="border-b border-line text-left text-mist">
+            <th className="py-1.5 pr-3 font-medium">Ending</th>
             {bout.by_round.map((r) => (
-              <th
-                key={r.round}
-                className="label py-1 pr-3 text-[10px] font-medium text-mist"
-              >
+              <th key={r.round} className="py-1.5 pr-3 font-medium">
                 R{r.round}
               </th>
             ))}
-            <th className="label py-1 text-[10px] font-medium text-mist">Any</th>
+            <th className="py-1.5 font-medium">Any</th>
           </tr>
         </thead>
-        <tbody className="font-mono tabular-nums">
+        <tbody className="num">
           {rows.map(([label, key, total]) => (
-            <tr key={key} className="border-b border-line/60 last:border-0">
-              <td className="py-1 pr-3 font-sans text-ash">{label}</td>
+            <tr key={key} className="border-b border-line/50 last:border-0">
+              <td className="py-1.5 pr-3 font-sans text-ash">{label}</td>
               {bout.by_round.map((r) => (
-                <td key={r.round} className="py-1 pr-3 text-ash">
+                <td key={r.round} className="py-1.5 pr-3 text-mist">
                   {pct(r[key], 1)}
                 </td>
               ))}
-              <td className="py-1 font-semibold text-ink">{pct(total, 1)}</td>
+              <td className="py-1.5 text-ink">{pct(total, 1)}</td>
             </tr>
           ))}
           <tr>
-            <td className="py-1 pr-3 font-sans text-ash">
-              decision (either fighter)
-            </td>
+            <td className="py-1.5 pr-3 font-sans text-ash">Either by decision</td>
             {bout.by_round.map((r) => (
-              <td key={r.round} className="py-1 pr-3 text-mist">
+              <td key={r.round} className="py-1.5 pr-3 text-mist">
                 —
               </td>
             ))}
-            <td className="py-1 font-semibold text-ink">
-              {pct(bout.p_decision, 1)}
-            </td>
+            <td className="py-1.5 text-ink">{pct(bout.p_decision, 1)}</td>
           </tr>
         </tbody>
       </table>
     </div>
   );
+}
+
+function SubHead({ children }: { children: React.ReactNode }) {
+  return <h4 className="text-xs text-mist">{children}</h4>;
 }
 
 function FightResearch({ bout }: { bout: Bout }) {
@@ -264,19 +241,20 @@ function FightResearch({ bout }: { bout: Bout }) {
   if (research.length === 0 && skill == null && market == null) return null;
   return (
     <div>
-      <h4 className="label text-[10px] text-mist">Fight research</h4>
+      <SubHead>Research</SubHead>
       {skill != null && market != null && Number.isFinite(market) && (
-        <p className="mt-1 text-xs text-ash">
-          Research model {pct(skill)} vs. market {pct(market)} for{" "}
+        <p className="mt-1.5 text-xs text-ash">
+          Model <span className="num">{pct(skill)}</span> vs. market{" "}
+          <span className="num">{pct(market)}</span> on{" "}
           <span className="text-ink">{bout.f1}</span>
           {Math.abs(skill - market) >= 0.03
-            ? ` — ${skill > market ? "research likes them more" : "market likes them more"}`
+            ? ` — ${skill > market ? "the model likes them more" : "the market likes them more"}`
             : " — they agree"}
           .
         </p>
       )}
       {research.length > 0 && (
-        <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-ash">
+        <ul className="mt-1.5 list-disc space-y-1 pl-4 text-xs text-ash marker:text-mist">
           {research.map((line) => (
             <li key={line}>{line}</li>
           ))}
@@ -316,19 +294,19 @@ function ContextNotes({ bout }: { bout: Bout }) {
   }
   return (
     <div>
-      <h4 className="label text-[10px] text-mist">Day-before context</h4>
+      <SubHead>Context</SubHead>
       {styles.length > 0 && (
-        <p className="mt-1 text-xs text-ash">Style: {styles.join(" · ")}</p>
+        <p className="mt-1.5 text-xs text-ash">Style: {styles.join(" · ")}</p>
       )}
       {adjustments.length > 0 && (
-        <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-ash">
+        <ul className="mt-1.5 list-disc space-y-1 pl-4 text-xs text-ash marker:text-mist">
           {adjustments.map((a) => (
             <li key={a}>{a}</li>
           ))}
         </ul>
       )}
       {notes.length > 0 && (
-        <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-mist">
+        <ul className="mt-1.5 list-disc space-y-1 pl-4 text-xs text-mist marker:text-mist">
           {notes.map((n) => (
             <li key={n}>{n}</li>
           ))}
@@ -368,28 +346,27 @@ function Drivers({ bout }: { bout: Bout }) {
 
   return (
     <div>
-      <h4 className="label text-[10px] text-mist">Why</h4>
-      <p className="mt-1 text-xs text-ash">
-        Log-odds pull on the pick. Bars to the right favour{" "}
-        <span className="text-ink">{bout.f1}</span>, to the left{" "}
+      <SubHead>Why</SubHead>
+      <p className="mt-1.5 text-xs text-ash">
+        Bars right favour <span className="text-ink">{bout.f1}</span>, left{" "}
         <span className="text-ink">{bout.f2}</span>.
       </p>
-      <ul className="mt-2 space-y-1">
+      <ul className="mt-2.5 space-y-1.5">
         {bout.drivers.map((driver) => (
-          <li key={driver.feature} className="flex items-center gap-2 text-xs">
-            <span className="w-40 shrink-0 truncate text-ash" title={driver.feature}>
+          <li key={driver.feature} className="flex items-center gap-3 text-xs">
+            <span className="w-36 shrink-0 truncate text-ash" title={driver.feature}>
               {driver.feature.replace(/_/g, " ")}
             </span>
             <span className="relative flex h-3 flex-1 items-center">
               <span className="absolute inset-y-0 left-1/2 w-px bg-line" />
               <span
-                className={`absolute h-2 ${
+                className={`absolute h-1.5 rounded-full ${
                   driver.value >= 0 ? "left-1/2 bg-blood" : "right-1/2 bg-rail"
                 }`}
                 style={{ width: `${(Math.abs(driver.value) / widest) * 48}%` }}
               />
             </span>
-            <span className="w-12 shrink-0 text-right font-mono text-mist">
+            <span className="num w-12 shrink-0 text-right text-mist">
               {driver.value >= 0 ? "+" : ""}
               {num(driver.value, 2)}
             </span>
@@ -410,7 +387,7 @@ export function BoutCard({
 }) {
   const p1 = bout.p_f1_wins;
   return (
-    <article className="border border-line bg-paper">
+    <article className="overflow-hidden rounded-2xl border border-line bg-paper">
       <BoutHeader bout={bout} />
 
       {/*
@@ -418,7 +395,7 @@ export function BoutCard({
         only reliable way to let a long surname shrink and wrap instead of
         pushing the whole row past a phone's viewport.
       */}
-      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)_auto] items-center gap-2 px-2 py-3 sm:gap-4 sm:px-4">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)_auto] items-center gap-2 px-3 py-4 sm:gap-4 sm:px-5">
         <Portrait media={bout.f1_media} name={bout.f1} side="left" />
         <Nameplate
           media={bout.f1_media}
@@ -426,7 +403,7 @@ export function BoutCard({
           side="left"
           winner={bout.called && p1 >= 0.5}
         />
-        <span className="display px-1 text-sm text-mist sm:text-base">vs</span>
+        <span className="display px-1 text-xs text-mist sm:text-sm">vs</span>
         <Nameplate
           media={bout.f2_media}
           name={bout.f2}
@@ -440,11 +417,19 @@ export function BoutCard({
       {result && <ResultLine result={result} />}
 
       <details className="group border-t border-line">
-        <summary className="label cursor-pointer list-none px-4 py-2 text-[10px] text-ash select-none hover:text-ink">
-          <span className="group-open:hidden">How it ends + why ▾</span>
-          <span className="hidden group-open:inline">Hide detail ▴</span>
+        <summary className="pressable flex cursor-pointer list-none items-center justify-between px-4 py-3 text-xs text-mist select-none hover:text-ink">
+          <span>
+            <span className="group-open:hidden">How it ends, and why</span>
+            <span className="hidden group-open:inline">Hide detail</span>
+          </span>
+          <span
+            aria-hidden
+            className="text-[10px] transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none"
+          >
+            ▼
+          </span>
         </summary>
-        <div className="space-y-4 border-t border-line px-4 py-3">
+        <div className="space-y-5 px-4 pb-5">
           <EndingGrid bout={bout} />
           <FightResearch bout={bout} />
           <ContextNotes bout={bout} />
