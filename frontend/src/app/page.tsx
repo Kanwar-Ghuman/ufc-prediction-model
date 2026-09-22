@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { api, num, pct, stamp } from "@/lib/api";
 import type { NextCard, Overview, SplitMetrics } from "@/lib/api";
-import { ApiNotice, Panel } from "@/components/ui";
+import { ApiNotice } from "@/components/ui";
 import { CardView, EventHero } from "@/components/CardView";
 import { ScorecardPanel } from "@/components/Scorecard";
 
@@ -44,14 +44,6 @@ export default async function HomePage() {
       )}
 
       <CardView card={card.data} scorecard={card.data.scorecard} />
-
-      <Panel>
-        <p className="text-sm text-ash">
-          {overview.ok
-            ? overview.data.disclaimer
-            : "Educational project. Not betting advice."}
-        </p>
-      </Panel>
     </div>
   );
 }

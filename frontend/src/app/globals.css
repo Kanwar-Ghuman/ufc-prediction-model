@@ -49,6 +49,16 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+::selection {
+  background-color: color-mix(in srgb, var(--color-blood) 40%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-blood);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
 /* Tracking is size-specific: condensed capitals drift apart as they grow, so
    the large sizes pull in and the small ones open up. One letter-spacing for
    every size would be wrong at both ends. */

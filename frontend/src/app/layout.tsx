@@ -52,7 +52,10 @@ export default function RootLayout({
 
         <footer className="mt-16 border-t border-line/70">
           <div className="mx-auto flex max-w-4xl flex-wrap justify-between gap-2 px-5 py-6 text-xs text-mist sm:px-8">
-            <p>Educational project. Not betting advice.</p>
+            <p>
+              Educational project. Not betting advice — the model does not beat
+              the market.
+            </p>
             <p>
               Portraits and records from{" "}
               <a

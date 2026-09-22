@@ -10,7 +10,7 @@ const SPLITS = [
     split: "valid",
     title: "Validation (2022–2023)",
     subtitle:
-      "Used to choose between models. Odds exist here, so it is the only fair model-against-market comparison.",
+      "Used to choose between models. The only split with odds, so the only fair market comparison.",
   },
   {
     split: "test",

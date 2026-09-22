@@ -91,21 +91,26 @@ function ModelStrip({ bout, result }: { bout: Bout; result?: GradedFight }) {
           {bout.called ? "Prediction" : "Low confidence"}
         </p>
         {result ? (
-          <p
-            className={`display display-title mt-1.5 text-lg ${
-              !bout.called
-                ? "text-mist"
+          <>
+            <p
+              className={`display display-title mt-1.5 text-lg ${
+                !bout.called
+                  ? "text-mist"
+                  : result.correct
+                    ? "text-hit"
+                    : "text-miss"
+              }`}
+            >
+              {!bout.called
+                ? "Abstained"
                 : result.correct
-                  ? "text-hit"
-                  : "text-miss"
-            }`}
-          >
-            {!bout.called
-              ? "Abstained"
-              : result.correct
-                ? "Called it"
-                : "Missed"}
-          </p>
+                  ? "Called it"
+                  : "Missed"}
+            </p>
+            {/* The verdict alone hides what was actually predicted, which is
+                the thing a reader came to check. */}
+            <p className="mt-1 text-xs text-mist">{prediction}</p>
+          </>
         ) : (
           <p
             className={`display display-title mt-1.5 text-lg sm:text-2xl ${
@@ -211,7 +216,7 @@ function EndingGrid({ bout }: { bout: Bout }) {
             </tr>
           ))}
           <tr>
-            <td className="py-1.5 pr-3 font-sans text-ash">Decision</td>
+            <td className="py-1.5 pr-3 font-sans text-ash">Either by decision</td>
             {bout.by_round.map((r) => (
               <td key={r.round} className="py-1.5 pr-3 text-mist">
                 —
