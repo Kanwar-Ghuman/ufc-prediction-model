@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { portraitUrl } from "@/lib/api";
+import { portraitUrl } from "@/lib/origin";
 import type { FighterMedia } from "@/lib/api";
 
 type Side = "left" | "right";

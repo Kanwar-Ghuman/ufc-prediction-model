@@ -115,7 +115,7 @@ def overview() -> dict:
     cfg, art = config(), artifact()
     splits = cfg["splits"]
     return {
-        "name": "Octagon",
+        "name": "Ictus",
         "summary": "UFC fight outcome prediction with calibrated probabilities, "
                    "point-in-time features and a walk-forward backtest.",
         "disclaimer": "Educational project. Not betting advice — the backtest "

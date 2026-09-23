@@ -19,7 +19,7 @@ export default async function HomePage() {
     return (
       <div className="space-y-6">
         <div className="border-b-4 border-blood pb-4">
-          <h1 className="display text-4xl">Octagon</h1>
+          <h1 className="display text-4xl">Ictus.</h1>
           <p className="mt-2 max-w-2xl text-sm text-ash">
             Calibrated win, method and round probabilities for upcoming UFC
             cards.

@@ -1,19 +1,37 @@
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000";
+import snapshot from "@/data/snapshot.json";
+import { liveBase } from "@/lib/origin";
+
+export { portraitUrl } from "@/lib/origin";
 
 export type ApiResult<T> =
   | { ok: true; data: T }
   | { ok: false; kind: "offline" | "missing" | "error"; message: string };
 
+const SNAPSHOT = snapshot as Record<string, unknown>;
+
+function fromSnapshot<T>(path: string): ApiResult<T> {
+  if (!(path in SNAPSHOT)) {
+    return { ok: false, kind: "missing", message: `No snapshot for ${path}.` };
+  }
+  const data = SNAPSHOT[path];
+  if (data == null) {
+    return { ok: false, kind: "missing", message: `API returned 404.` };
+  }
+  return { ok: true, data: data as T };
+}
+
 export async function api<T>(path: string): Promise<ApiResult<T>> {
+  const base = liveBase();
+  if (!base) return fromSnapshot<T>(path);
+
   let response: Response;
   try {
-    response = await fetch(`${API_BASE}${path}`, { cache: "no-store" });
+    response = await fetch(`${base}${path}`, { cache: "no-store" });
   } catch {
     return {
       ok: false,
       kind: "offline",
-      message: `Cannot reach the API at ${API_BASE}. Start it with \`cd model && uv run python -m octagon serve\`.`,
+      message: `Cannot reach the API at ${base}. Start it with \`cd model && uv run python -m octagon serve\`.`,
     };
   }
 
@@ -271,10 +289,6 @@ export const pct = (value: number, digits = 0) =>
   `${(value * 100).toFixed(digits)}%`;
 
 export const num = (value: number, digits = 4) => value.toFixed(digits);
-
-/** Portraits live on the model API, which is a different origin in dev. */
-export const portraitUrl = (path: string | null) =>
-  path ? `${API_BASE}${path}` : null;
 
 /**
  * "RS" -> 🇷🇸, "GB-WLS" -> 🏴󠁧󠁢󠁷󠁬󠁳󠁿. Country flags are the two letters offset into

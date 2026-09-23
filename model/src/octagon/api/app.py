@@ -11,7 +11,7 @@ SPLIT_HELP = "Split to read: 'valid' (2022-2023) or 'test' (2024+)."
 
 def create_app(allow_origins: list[str] | None = None) -> FastAPI:
     app = FastAPI(
-        title="Octagon API",
+        title="Ictus API",
         version="0.1.0",
         description="Read-only evaluation results and card predictions.",
     )

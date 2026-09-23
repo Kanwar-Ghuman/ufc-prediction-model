@@ -24,18 +24,21 @@ export function SpinningLogo() {
   }, []);
 
   return <div className="octagon-brand">
-    <Link href="/" aria-label="Octagon home" className="octagon-logo">
-      <video
-        ref={video}
-        muted loop playsInline preload="none"
-        poster="/motion/octagon-logo.jpg"
-        aria-hidden="true"
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        onError={() => setFailed(true)}
-      >
-        <source src="/motion/octagon-logo.mp4" type="video/mp4" onError={() => setFailed(true)} />
-      </video>
+    <Link href="/" className="octagon-mark">
+      <span className="octagon-logo">
+        <video
+          ref={video}
+          muted loop playsInline preload="none"
+          poster="/motion/octagon-logo.jpg"
+          aria-hidden="true"
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+          onError={() => setFailed(true)}
+        >
+          <source src="/motion/octagon-logo.mp4" type="video/mp4" onError={() => setFailed(true)} />
+        </video>
+      </span>
+      <span className="brand-name">Ictus<span aria-hidden="true">.</span></span>
     </Link>
     {!failed && <button
       type="button"

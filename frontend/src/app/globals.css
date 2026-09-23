@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@800&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -27,9 +28,11 @@ a, button, summary { -webkit-tap-highlight-color: transparent; }
 .site-nav { display:flex; gap:32px; font-size:13px; color:var(--color-ash); }
 .site-nav a { padding:25px 0; border-bottom:2px solid transparent; }
 .site-nav a[aria-current=page] { border-color:var(--color-ink); color:var(--color-ink); }
-.octagon-brand { display:flex; align-items:center; flex-shrink:0; gap:2px; }
+.octagon-brand { display:flex; align-items:center; flex-shrink:0; gap:6px; }
+.octagon-mark { display:flex; align-items:center; gap:10px; color:inherit; text-decoration:none; }
 .octagon-logo { display:block; width:90px; height:63px; }
 .octagon-logo video { display:block; width:100%; height:100%; object-fit:contain; }
+.brand-name { font-family:"Inter Tight","Helvetica Neue",Arial,sans-serif; font-weight:800; font-size:32px; letter-spacing:-.04em; line-height:.9; color:#000; -webkit-font-smoothing:antialiased; }
 .logo-motion-toggle { display:grid; place-items:center; width:24px; height:24px; padding:0; border:0; background:transparent; color:var(--color-mist); font-size:11px; cursor:pointer; }
 .logo-motion-toggle:hover { color:var(--color-ink); }
 .event-hero { display:grid; grid-template-columns:1.2fr 1fr; border-bottom:1px solid var(--color-line); min-height:290px; align-items:center; gap:48px; padding-bottom:28px; }
@@ -73,5 +76,5 @@ a, button, summary { -webkit-tap-highlight-color: transparent; }
 section[id] { scroll-margin-top:95px; }
 @media (min-width:1450px) { .portrait-frame { width:155px; } }
 @media (max-width:1000px) { .bout-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .event-hero { gap:25px; } .site-width { width:calc(100% - 48px); } }
-@media (max-width:640px) { .site-width { width:calc(100% - 36px); } .site-nav { gap:18px; font-size:12px; } .octagon-logo { width:76px; height:54px; } .event-hero { grid-template-columns:1fr; gap:22px; padding-bottom:24px; } .event-art { min-height:210px; } .event-title { font-size:39px; } .bout-grid { grid-template-columns:1fr; } .portrait-frame { width:142px; } .fighter-name { min-height:47px; font-size:18px; } .faceoff { padding:18px 10px; } .bout-card { padding-top:22px; } .metrics-strip { gap:20px 25px; } .metrics-intro { flex-basis:100%; } .section-heading { gap:12px; } .section-heading p { max-width:140px; text-align:right; } }
+@media (max-width:640px) { .site-width { width:calc(100% - 36px); } .site-nav { gap:18px; font-size:12px; } .octagon-logo { width:76px; height:54px; } .brand-name { font-size:26px; } .event-hero { grid-template-columns:1fr; gap:22px; padding-bottom:24px; } .event-art { min-height:210px; } .event-title { font-size:39px; } .bout-grid { grid-template-columns:1fr; } .portrait-frame { width:142px; } .fighter-name { min-height:47px; font-size:18px; } .faceoff { padding:18px 10px; } .bout-card { padding-top:22px; } .metrics-strip { gap:20px 25px; } .metrics-intro { flex-basis:100%; } .section-heading { gap:12px; } .section-heading p { max-width:140px; text-align:right; } }
 @media (prefers-reduced-motion:reduce) { *, *::before, *::after { scroll-behavior:auto !important; animation:none !important; transition:none !important; } }
