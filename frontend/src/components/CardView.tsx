@@ -30,10 +30,6 @@ export function EventHero({
   card: CardDetail;
   eyebrow?: string;
 }) {
-  const matchup = card.bouts.some(bout =>
-    [bout.f1, bout.f2].includes("Joshua Van") &&
-    [bout.f1, bout.f2].includes("Alexandre Pantoja")
-  ) ? "van-pantoja" : "study";
   return (
     <header>
       <div className="event-hero">
@@ -43,7 +39,7 @@ export function EventHero({
           <p className="event-meta">{eventDate(card.date, { year: "numeric" })} <span className="mx-2">/</span> {card.bouts.length} bouts</p>
           <p className="mt-3 text-xs text-mist">Independent predictions. Every pick on the record.</p>
         </div>
-        <FightMotion key={matchup} matchup={matchup} />
+        <FightMotion />
       </div>
       {card.headline && <HeadlineCall headline={card.headline} />}
       <p className="mt-2 text-[10px] text-mist">Predictions recorded {stamp(card.predicted_at)}</p>
