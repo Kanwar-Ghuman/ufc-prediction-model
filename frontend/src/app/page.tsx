@@ -34,16 +34,16 @@ export default async function HomePage() {
     <div className="space-y-8">
       <EventHero card={card.data} />
 
-      <HeldOutStats
-        test={test.ok ? test.data : null}
-        updatedAt={overview.ok ? overview.data.updated_at : null}
-      />
-
       {card.data.scorecard && (
         <ScorecardPanel scorecard={card.data.scorecard} />
       )}
 
       <CardView card={card.data} scorecard={card.data.scorecard} />
+
+      <HeldOutStats
+        test={test.ok ? test.data : null}
+        updatedAt={overview.ok ? overview.data.updated_at : null}
+      />
 
       <Panel>
         <p className="text-sm text-ash">
@@ -67,8 +67,8 @@ function HeldOutStats({
     test?.models.find((m) => m.key === "p_shipped") ??
     test?.models.find((m) => m.key === "p_blend");
   return (
-    <div className="flex flex-wrap items-center gap-x-8 gap-y-3 border border-line bg-paper px-5 py-3">
-      <div>
+    <div className="metrics-strip">
+      <div className="metrics-intro">
         <p className="label text-[10px] text-mist">Held-out test</p>
         <p className="text-xs text-ash">
           {test

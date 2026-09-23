@@ -13,7 +13,7 @@ function ProbabilityBar({
   const trail = muted ? "bg-line" : "bg-rail";
   const leftLeads = left >= 0.5;
   return (
-    <div className="flex h-1.5 w-full overflow-hidden bg-line">
+    <div className="flex h-[3px] w-full overflow-hidden bg-line">
       <div
         className={leftLeads ? lead : trail}
         style={{ width: `${left * 100}%` }}
@@ -26,109 +26,30 @@ function ProbabilityBar({
   );
 }
 
-/** Weight class, rounds, title/no-call flags. */
-function BoutHeader({ bout }: { bout: Bout }) {
-  const circ = [
-    bout.context?.f1?.circumstances,
-    bout.context?.f2?.circumstances,
-  ];
-  const shortNotice = circ.some(
-    (c) => c?.short_notice || c?.late_replacement,
-  );
-  // UFC fights === 0 is a debut. A pro record in the media cache is not.
-  const debut = [bout.f1_ufc_fights, bout.f2_ufc_fights].some(
-    (n) => n === 0,
-  );
-  return (
-    <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-b border-line px-4 py-2">
-      <span className="label text-[11px] text-ash">
-        {bout.weight_class ?? "Catchweight"} bout
-      </span>
-      <span className="text-[11px] text-mist">
-        {bout.scheduled_rounds} rounds
-      </span>
-      {bout.scheduled_rounds === 5 && (
-        <span className="label rounded-xs bg-ink px-1.5 py-0.5 text-[10px] text-paper">
-          Main event
-        </span>
-      )}
-      {!bout.called && (
-        <span className="label rounded-xs border border-rail px-1.5 py-0.5 text-[10px] text-mist">
-          No call
-        </span>
-      )}
-      {shortNotice && (
-        <span className="label rounded-xs border border-gold/50 px-1.5 py-0.5 text-[10px] text-gold">
-          Short notice
-        </span>
-      )}
-      {debut && (
-        <span className="label rounded-xs border border-rail px-1.5 py-0.5 text-[10px] text-ash">
-          UFC debut
-        </span>
-      )}
-    </div>
-  );
+function BoutHeader({ bout, role }: { bout: Bout; role?: string }) {
+  const shortNotice = [bout.context?.f1?.circumstances, bout.context?.f2?.circumstances].some(c => c?.short_notice || c?.late_replacement);
+  return <div className="bout-heading">
+    <span className={role ? "bout-role" : ""}>{role ?? bout.weight_class ?? "Catchweight"}</span>
+    <span>{role ? `${bout.weight_class ?? "Catchweight"} · ` : ""}{bout.scheduled_rounds} rounds</span>
+    {shortNotice && <span>Short notice</span>}
+    {[bout.f1_ufc_fights, bout.f2_ufc_fights].some(n => n === 0) && <span>UFC debut</span>}
+  </div>;
 }
 
-/** The model's call — words first, percentages secondary. */
-function ModelStrip({ bout, result }: { bout: Bout; result?: GradedFight }) {
+function ModelStrip({ bout }: { bout: Bout }) {
   const p1 = bout.p_f1_wins;
-  // A no-call has no favourite to colour. Leaving the leading number red
-  // would read as a pick the model explicitly declined to make.
-  const lead = bout.called ? "text-blood" : "text-ash";
-  const selectedOutcome = bout.top_outcome
-    ? `${bout.pick} ${bout.top_outcome.label}`
-    : `picks ${bout.pick}`;
-  const prediction = bout.called
-    ? bout.statement ?? selectedOutcome
-    : `Lean: ${selectedOutcome}`;
-
-  return (
-    <div className="border-t border-line bg-shell/70">
-      <div className="px-4 pt-3 pb-1 text-center">
-        <p className="label text-[10px] text-mist">
-          {bout.called ? "Model prediction" : "Model lean · low confidence"}
-        </p>
-        {result ? (
-          <p
-            className={`label mt-1 text-sm ${
-              !bout.called
-                ? "text-mist"
-                : result.correct
-                  ? "text-hit"
-                  : "text-miss"
-            }`}
-          >
-            {!bout.called
-              ? "Abstained"
-              : result.correct
-                ? "Called it"
-                : "Missed"}
-          </p>
-        ) : (
-          <p
-            className={`display mt-1 text-lg sm:text-2xl ${
-              bout.called ? "text-ink" : "text-mist"
-            }`}
-          >
-            {prediction}
-          </p>
-        )}
-        {bout.top_outcome && !result && <OutcomeBreakdown bout={bout} />}
-      </div>
-      <div className="flex items-center justify-between gap-4 px-4 pb-2">
-        <span className={`display text-base ${p1 >= 0.5 ? lead : "text-ash"}`}>
-          {pct(p1)}
-        </span>
-        <span className="label text-[10px] text-mist">Win probability</span>
-        <span className={`display text-base ${p1 < 0.5 ? lead : "text-ash"}`}>
-          {pct(1 - p1)}
-        </span>
-      </div>
-      <ProbabilityBar left={p1} muted={!bout.called} />
+  return <div>
+    <div className="probability-row">
+      <strong className={bout.called && p1 >= .5 ? "favored" : ""}>{pct(p1)}</strong>
+      <span>Win probability</span>
+      <strong className={bout.called && p1 < .5 ? "favored" : ""}>{pct(1 - p1)}</strong>
     </div>
-  );
+    <ProbabilityBar left={p1} muted={!bout.called} />
+    <div className="pick-line">
+      <span className="label text-[9px] text-mist">{bout.called ? "The pick" : "Model lean · no call"}</span>
+      <p>{bout.statement ?? `${bout.pick} ${bout.top_outcome?.label ?? "to win"}`}</p>
+    </div>
+  </div>;
 }
 
 /** The selected method first, then the conditional round and exact joint P. */
@@ -141,12 +62,12 @@ function OutcomeBreakdown({ bout }: { bout: Bout }) {
         ? "Submission"
         : "KO/TKO";
   const valueTone = bout.called ? "text-blood" : "text-ash";
-  const cell = "border border-line bg-paper/60 px-2 py-2";
+  const cell = "border-b border-line py-2";
 
   return (
     <div
       className={`mx-auto mt-3 grid max-w-xl gap-1 text-left ${
-        outcome.round == null ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4"
+        outcome.round == null ? "grid-cols-2" : "grid-cols-2"
       }`}
     >
       <div className={cell}>
@@ -191,9 +112,9 @@ function ResultLine({ result }: { result: GradedFight }) {
       : result.method ?? "decision";
   return (
     <div className="flex flex-wrap items-center justify-center gap-x-2 border-t border-line bg-ink px-4 py-1.5 text-center">
-      <span className="label text-[10px] text-mist">Result</span>
+      <span className="label text-[10px] text-paper/80">Result · {result.called ? (result.correct ? "Correct pick" : "Missed pick") : "No call"}</span>
       <span className="display text-sm text-paper">{result.winner}</span>
-      <span className="text-xs text-mist">{finish}</span>
+      <span className="text-xs text-paper/80">{finish}</span>
     </div>
   );
 }
@@ -403,48 +324,42 @@ function Drivers({ bout }: { bout: Bout }) {
 export function BoutCard({
   bout,
   result,
+  role,
 }: {
   bout: Bout;
+  role?: string;
   /** Present once the card has been graded against real results. */
   result?: GradedFight;
 }) {
   const p1 = bout.p_f1_wins;
   return (
-    <article className="border border-line bg-paper">
-      <BoutHeader bout={bout} />
-
-      {/*
-        Grid, not flex: the two name columns are minmax(0, 1fr), which is the
-        only reliable way to let a long surname shrink and wrap instead of
-        pushing the whole row past a phone's viewport.
-      */}
-      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)_auto] items-center gap-2 px-2 py-3 sm:gap-4 sm:px-4">
-        <Portrait media={bout.f1_media} name={bout.f1} side="left" />
-        <Nameplate
-          media={bout.f1_media}
-          name={bout.f1}
-          side="left"
-          winner={bout.called && p1 >= 0.5}
-        />
-        <span className="display px-1 text-sm text-mist sm:text-base">vs</span>
-        <Nameplate
-          media={bout.f2_media}
-          name={bout.f2}
-          side="right"
-          winner={bout.called && p1 < 0.5}
-        />
-        <Portrait media={bout.f2_media} name={bout.f2} side="right" />
+    <article className="bout-card">
+      <BoutHeader bout={bout} role={role} />
+      <div className="faceoff">
+        <div className="fighter-side">
+          <Portrait media={bout.f1_media} name={bout.f1} side="left" />
+          <Nameplate media={bout.f1_media} name={bout.f1} side="left" winner={bout.called && p1 >= .5} />
+        </div>
+        <span className="versus">vs</span>
+        <div className="fighter-side">
+          <Portrait media={bout.f2_media} name={bout.f2} side="right" />
+          <Nameplate media={bout.f2_media} name={bout.f2} side="right" winner={bout.called && p1 < .5} />
+        </div>
       </div>
-
-      <ModelStrip bout={bout} result={result} />
+      <ModelStrip bout={bout} />
       {result && <ResultLine result={result} />}
 
-      <details className="group border-t border-line">
-        <summary className="label cursor-pointer list-none px-4 py-2 text-[10px] text-ash select-none hover:text-ink">
-          <span className="group-open:hidden">How it ends + why ▾</span>
-          <span className="hidden group-open:inline">Hide detail ▴</span>
+      <details className="bout-details group">
+        <summary aria-label={`Prediction details for ${bout.f1} versus ${bout.f2}`}>
+          <span className="group-open:hidden">Explore prediction</span>
+          <span className="hidden group-open:inline">Close prediction</span>
         </summary>
-        <div className="space-y-4 border-t border-line px-4 py-3">
+        <div className="space-y-5 border-t border-line pt-4">
+          <div className="flex justify-between gap-4 text-xs text-ash">
+            <span>{bout.f1_media.country ?? "Country unavailable"}</span>
+            <span className="text-right">{bout.f2_media.country ?? "Country unavailable"}</span>
+          </div>
+          {bout.top_outcome && <OutcomeBreakdown bout={bout} />}
           <EndingGrid bout={bout} />
           <FightResearch bout={bout} />
           <ContextNotes bout={bout} />

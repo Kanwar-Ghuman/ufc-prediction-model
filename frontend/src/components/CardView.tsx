@@ -1,6 +1,7 @@
 import { eventDate, pct, stamp } from "@/lib/api";
 import type { Bout, CardDetail, GradedFight, Headline, Scorecard } from "@/lib/api";
 import { BoutCard } from "@/components/BoutCard";
+import { FightMotion } from "@/components/FightMotion";
 
 function segments(bouts: Bout[]): { title: string; bouts: Bout[] }[] {
   const out: { title: string; bouts: Bout[] }[] = [];
@@ -30,22 +31,18 @@ export function EventHero({
   eyebrow?: string;
 }) {
   return (
-    <header className="border border-line bg-paper">
-      <div className="border-b-4 border-blood px-5 py-5 sm:px-8 sm:py-7">
-        <p className="label text-[11px] text-blood">
-          {eyebrow ?? (card.upcoming ? "Next card" : "Latest card")}
-        </p>
-        <h1 className="display mt-2 text-3xl sm:text-5xl">{card.event}</h1>
-        <p className="label mt-2 text-xs text-ash sm:text-sm">
-          {eventDate(card.date, { year: "numeric" })} · {card.bouts.length} bouts
-        </p>
+    <header>
+      <div className="event-hero">
+        <div>
+          <p className="label text-[10px] text-ash">Fight by fight <span className="mx-2">/</span> {eyebrow ?? (card.upcoming ? "Up next" : "Latest event")}</p>
+          <h1 className="display event-title">{card.event}</h1>
+          <p className="event-meta">{eventDate(card.date, { year: "numeric" })} <span className="mx-2">/</span> {card.bouts.length} bouts</p>
+          <p className="mt-3 text-xs text-mist">Independent predictions. Every pick on the record.</p>
+        </div>
+        <FightMotion />
       </div>
       {card.headline && <HeadlineCall headline={card.headline} />}
-      <p className="px-5 py-2 text-xs text-mist sm:px-8">
-        Probabilities frozen {stamp(card.predicted_at)} by{" "}
-        <code className="font-mono">octagon predict</code> — every rerun of the
-        model republishes this page.
-      </p>
+      <p className="mt-2 text-[10px] text-mist">Predictions recorded {stamp(card.predicted_at)}</p>
     </header>
   );
 }
@@ -56,22 +53,11 @@ export function EventHero({
  * The percentages ride along underneath, but the sentence leads.
  */
 function HeadlineCall({ headline }: { headline: Headline }) {
-  return (
-    <div className="border-b border-line px-5 py-5 sm:px-8 sm:py-6">
-      <p className="label text-[11px] text-mist">
-        The model&apos;s most confident call
-        {headline.weight_class ? ` · ${headline.weight_class}` : ""}
-      </p>
-      <p className="display mt-3 text-2xl leading-tight text-ink sm:text-4xl">
-        {headline.statement}
-      </p>
-      <p className="mt-3 text-xs text-ash">
-        <span className="font-mono text-blood">{pct(headline.confidence)}</span>{" "}
-        to win · this exact ending{" "}
-        <span className="font-mono">{pct(headline.outcome_probability)}</span>
-      </p>
-    </div>
-  );
+  return <div className="headline-note">
+    <span className="label text-[9px] text-mist">Strongest pick</span>
+    <strong>{headline.statement}</strong>
+    <span className="text-ash">{pct(headline.confidence)} to win · {pct(headline.outcome_probability)} exact outcome</span>
+  </div>;
 }
 
 /** The band that separates MAIN CARD from PRELIMS. */
@@ -82,8 +68,8 @@ function SegmentBand({ title, bouts }: { title: string; bouts: Bout[] }) {
       ? called.reduce((sum, b) => sum + b.confidence, 0) / called.length
       : null;
   return (
-    <div className="flex flex-wrap items-baseline justify-between gap-2 border-b-2 border-ink pb-2">
-      <h2 className="display text-2xl sm:text-3xl">{title}</h2>
+    <div className="section-heading">
+      <h2 className="display">{title}</h2>
       <p className="min-w-0 text-xs text-ash">
         {bouts.length} bouts
         {lean !== null && (
@@ -107,17 +93,21 @@ export function CardView({
 }) {
   const results = resultIndex(scorecard ?? null);
   return (
-    <div className="space-y-8">
-      {segments(card.bouts).map((segment) => (
-        <section key={segment.title} className="space-y-3">
+    <div>
+      <nav className="card-navigation" aria-label="Fight card sections">
+        {segments(card.bouts).map((segment, index) => <a key={segment.title} href={`#segment-${index}`}>{segment.title}<span>{segment.bouts.length}</span></a>)}
+      </nav>
+      {segments(card.bouts).map((segment, segmentIndex) => (
+        <section key={segment.title} id={`segment-${segmentIndex}`}>
           <SegmentBand title={segment.title} bouts={segment.bouts} />
-          {segment.bouts.map((bout) => (
+          <div className="bout-grid">{segment.bouts.map((bout, boutIndex) => (
             <BoutCard
               key={`${bout.f1}-${bout.f2}`}
               bout={bout}
+              role={segmentIndex === 0 && boutIndex === 0 ? "Main event" : segmentIndex === 0 && boutIndex === 1 ? "Co-main event" : undefined}
               result={results.get(`${bout.f1}|${bout.f2}`)}
             />
-          ))}
+          ))}</div>
         </section>
       ))}
     </div>

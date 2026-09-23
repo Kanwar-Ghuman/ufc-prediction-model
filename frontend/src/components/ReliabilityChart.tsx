@@ -3,7 +3,7 @@ import type { Calibration } from "@/lib/api";
 const SIZE = 260;
 const PAD = 34;
 
-const SERIES_COLORS = ["#f4f4f5", "#e62629", "#4da3e8", "#d9a13d"];
+const SERIES_COLORS = ["#20211f", "#ae252b", "#38647a", "#795d28"];
 
 export function ReliabilityChart({ series }: { series: Calibration["series"] }) {
   const x = (v: number) => PAD + v * (SIZE - PAD * 2);

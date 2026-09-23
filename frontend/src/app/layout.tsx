@@ -1,73 +1,30 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Geist_Mono, Inter, Oswald } from "next/font/google";
+import { Navigation } from "@/components/Navigation";
 import "./globals.css";
 
-const oswald = Oswald({ variable: "--font-oswald", subsets: ["latin"] });
-const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
-
 export const metadata: Metadata = {
-  title: "Octagon",
-  description: "Calibrated UFC win, method, and round probabilities.",
+  title: "Octagon — Fight by fight",
+  description: "Independent UFC analysis. Fighter matchups, calibrated predictions, and the record behind them.",
 };
 
-const NAV = [
-  { href: "/", label: "Next card" },
-  { href: "/cards", label: "All cards" },
-  { href: "/results", label: "Results" },
-];
-
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <html
-      lang="en"
-      className={`${oswald.variable} ${inter.variable} ${geistMono.variable} h-full`}
-    >
-      <body className="flex min-h-full flex-col">
-        <header className="sticky top-0 z-10 border-b border-line bg-paper">
-          <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 sm:px-8">
-            <Link href="/" className="flex items-baseline gap-2">
-              <span className="display text-xl">Octagon</span>
-            </Link>
-            <nav className="label flex gap-5 text-[11px] text-ash">
-              {NAV.map((item) => (
-                <Link key={item.href} href={item.href} className="hover:text-ink">
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-        </header>
-
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-8 sm:py-10">
-          {children}
-        </main>
-
-        <footer className="mt-8 border-t border-line bg-paper">
-          <div className="mx-auto max-w-5xl space-y-1 px-4 py-5 text-xs text-mist sm:px-8">
-            <p>
-              Educational project. Not betting advice — the backtest shows this
-              model does not beat the market.
-            </p>
-            <p>
-              Fighter portraits, records and rankings from{" "}
-              <a
-                className="underline underline-offset-2 hover:text-ash"
-                href="https://www.ufc.com/athletes"
-                rel="noreferrer noopener"
-                target="_blank"
-              >
-                ufc.com
-              </a>
-              ; flags and biographies from Wikipedia and Wikidata. Cached
-              locally by <code className="font-mono">octagon fetch-media</code>.
-            </p>
-          </div>
-        </footer>
-      </body>
-    </html>
-  );
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return <html lang="en" className="h-full">
+    <body className="flex min-h-full flex-col">
+      <a href="#main" className="sr-only focus:not-sr-only focus:p-3">Skip to content</a>
+      <header className="sticky top-0 z-10 border-b border-line bg-paper">
+        <div className="site-width flex items-center justify-between gap-4">
+          <Link href="/" aria-label="Octagon home" className="flex items-center gap-3"><span className="brand-symbol" aria-hidden /><span className="wordmark">octagon.</span></Link>
+          <Navigation />
+        </div>
+      </header>
+      <main id="main" className="site-width flex-1 py-8 sm:py-12">{children}</main>
+      <footer className="mt-10 border-t border-line">
+        <div className="site-width flex flex-wrap justify-between gap-5 py-7 text-[11px] leading-relaxed text-mist">
+          <div><p className="mb-2 font-semibold text-ink">Octagon / Independent fight analysis</p><p>Educational project. Not betting advice. The model does not beat the market.</p></div>
+          <p>Fighter imagery &amp; records: <a className="underline underline-offset-2" href="https://www.ufc.com/athletes" target="_blank" rel="noreferrer noopener">UFC</a>.<br />Additional biographies: Wikipedia &amp; Wikidata.</p>
+        </div>
+      </footer>
+    </body>
+  </html>;
 }
