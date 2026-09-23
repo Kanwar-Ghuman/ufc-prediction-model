@@ -19,6 +19,39 @@ requests, gradients, glass panels, and glowing borders are removed.
 
 ## Motion
 
+### Header logo
+
+`octagon-logo.blend` contains the user-supplied `mma-octagon` FBX with its
+provided canvas and fence textures packed into the scene. `render_logo.py`
+imports the original files from Downloads and produces a full five-second
+turntable rotation (120 frames, 24 fps, 320 × 224). The header uses the
+276 KB H.264 export and a still JPEG in `public/motion/`, with a home link,
+pause control, and reduced-motion support. The original supplied files are
+unchanged. The Blender file can be rendered without the Downloads folder.
+
+### Fight illustration
+
+`van-pantoja.blend` contains the `Van vs Pantoja` scene: a five-second,
+120-frame exchange at 24 fps, rendered at 960 × 540. The figures use
+photo-textured interpretations of Joshua Van and Alexandre Pantoja, with
+alternating punches and defensive slips. They are stylized likenesses, not
+scanned models, actual footage, or an outcome prediction. `build_matchup.py`
+is the scene generator; its fighter photographs come from the local fighter
+image cache and are packed into the Blender file.
+
+Cards containing both fighters show `public/motion/van-pantoja.mp4` with its
+JPEG poster. Other cards retain the generic movement study below. Both clips
+respect reduced-motion preferences and expose a play/pause control.
+
+To render the matchup from the frontend directory:
+
+```sh
+mkdir -p /tmp/van-pantoja-frames
+blender -b design/van-pantoja.blend -S 'Van vs Pantoja' -o /tmp/van-pantoja-frames/frame_ -a
+ffmpeg -framerate 24 -i /tmp/van-pantoja-frames/frame_%04d.png -c:v libx264 -crf 22 -pix_fmt yuv420p -movflags +faststart public/motion/van-pantoja.mp4
+ffmpeg -i /tmp/van-pantoja-frames/frame_0001.png -frames:v 1 -q:v 2 public/motion/van-pantoja-poster.jpg
+```
+
 `sparring-study.blend` contains a separate `Octagon - Sparring study` scene.
 The original scene is preserved. Two original sculptural figures exchange jabs
 and slips over 72 frames at 24 fps. These illustrate movement; they are not

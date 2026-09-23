@@ -13,7 +13,7 @@ scene.render.engine = 'CYCLES'
 scene.cycles.samples = 24
 scene.cycles.use_denoising = True
 scene.render.resolution_x = 960
-scene.render.resolution_y = 600
+scene.render.resolution_y = 540
 scene.render.resolution_percentage = 100
 scene.render.fps = 24
 scene.frame_start, scene.frame_end = 1, 120
@@ -200,7 +200,7 @@ outline=bpy.data.objects.new('Octagon outline',curve);scene.collection.objects.l
 for loc,energy,size in [((-2,-4,5),400,4),((3,-1,3),230,3),((0,3,4),500,3)]:
     data=bpy.data.lights.new('Studio softbox','AREA');data.energy=energy;data.size=size
     o=bpy.data.objects.new('Studio softbox',data);scene.collection.objects.link(o);o.location=loc;o.rotation_euler=(Vector((0,0,1))-o.location).to_track_quat('-Z','Y').to_euler()
-data=bpy.data.cameras.new('Matchup camera');data.type='ORTHO';data.ortho_scale=2.9
+data=bpy.data.cameras.new('Matchup camera');data.type='ORTHO';data.ortho_scale=3.5
 cam=bpy.data.objects.new('Matchup camera',data);scene.collection.objects.link(cam);cam.location=(0,-6,2.8);cam.rotation_euler=(Vector((0,0,.90))-cam.location).to_track_quat('-Z','Y').to_euler();scene.camera=cam
 scene.frame_set(1)
 for image in bpy.data.images:

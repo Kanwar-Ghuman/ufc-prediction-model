@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Navigation } from "@/components/Navigation";
+import { SpinningLogo } from "@/components/SpinningLogo";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,7 +14,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <a href="#main" className="sr-only focus:not-sr-only focus:p-3">Skip to content</a>
       <header className="sticky top-0 z-10 border-b border-line bg-paper">
         <div className="site-width flex items-center justify-between gap-4">
-          <Link href="/" aria-label="Octagon home" className="flex items-center gap-3"><span className="brand-symbol" aria-hidden /><span className="wordmark">octagon.</span></Link>
+          <SpinningLogo />
           <Navigation />
         </div>
       </header>
