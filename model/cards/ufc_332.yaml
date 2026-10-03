@@ -1,0 +1,127 @@
+date: '2026-10-03'
+event: UFC 332
+fights:
+- fighter1: Natália Silva
+  fighter2: Wang Cong
+  weight_class: Women's Flyweight
+  title_fight: true
+  rounds: 5
+  section: Main card
+  odds:
+  - 1.495
+  - 2.695
+- fighter1: Deiveson Figueiredo
+  fighter2: Payton Talbott
+  weight_class: Bantamweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 6.275
+  - 1.13
+- fighter1: King Green
+  fighter2: Esteban Ribovics
+  weight_class: Lightweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 2.655
+  - 1.505
+- fighter1: Roberto Soldić
+  fighter2: Khaos Williams
+  weight_class: Welterweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 1.47
+  - 2.8
+- fighter1: Ateba Gautier
+  fighter2: Roman Kopylov
+  weight_class: Middleweight
+  title_fight: false
+  rounds: 3
+  section: Main card
+  odds:
+  - 1.42
+  - 2.965
+- fighter1: Imanol Rodríguez
+  fighter2: Alden Coria
+  weight_class: Flyweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.695
+  - 2.2
+- fighter1: Damian Pinas
+  fighter2: Andrey Pulyaev
+  weight_class: Middleweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.17
+  - 5.25
+- fighter1: Marcus McGhee
+  fighter2: Anthony Romero
+  weight_class: Featherweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.18
+  - 5.0
+- fighter1: Anthony Wint
+  fighter2: Lucas Armand
+  weight_class: Heavyweight
+  title_fight: false
+  rounds: 3
+  section: Preliminary card
+  odds:
+  - 1.18
+  - 5.125
+- fighter1: Johnny Walker
+  fighter2: Mick Parkin
+  weight_class: Heavyweight
+  title_fight: false
+  rounds: 3
+  section: Early preliminary card
+  odds: null
+- fighter1: Jacobe Smith
+  fighter2: Bruce Whitehead
+  weight_class: Welterweight
+  title_fight: false
+  rounds: 3
+  section: Early preliminary card
+  odds:
+  - 1.08
+  - 8.5
+- fighter1: Rafael dos Anjos
+  fighter2: Alexander Hernandez
+  weight_class: Lightweight
+  title_fight: false
+  rounds: 3
+  section: Early preliminary card
+  odds:
+  - 3.2
+  - 1.37
+- fighter1: Marvin Vettori
+  fighter2: Ismail Naurdiev
+  weight_class: Middleweight
+  title_fight: false
+  rounds: 3
+  section: Early preliminary card
+  odds:
+  - 2.18
+  - 1.7
+- fighter1: Court McGee
+  fighter2: Eric Nolan
+  weight_class: Welterweight
+  title_fight: false
+  rounds: 3
+  section: Early preliminary card
+  odds:
+  - 2.885
+  - 1.435
