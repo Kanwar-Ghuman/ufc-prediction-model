@@ -129,7 +129,7 @@ export type CardSummary = {
 /** What `octagon fetch-media` found for a fighter: ufc.com, then Wikipedia. */
 export type FighterMedia = {
   name: string;
-  /** API path, not an absolute URL — portraits are served by the model API. */
+  /** `/api/portraits/<file>`. Dev loads the model API; production loads `/portraits/<file>`. */
   portrait: string | null;
   nickname: string | null;
   record: string | null;

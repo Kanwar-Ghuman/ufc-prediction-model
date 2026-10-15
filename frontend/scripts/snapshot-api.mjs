@@ -41,3 +41,31 @@ for (const card of cards) {
 await mkdir(dirname(out), { recursive: true });
 await writeFile(out, `${JSON.stringify(snapshot)}\n`);
 console.log(`Wrote ${out} (${cards.length} cards)`);
+
+const portraits = new Set();
+for (const value of Object.values(snapshot)) {
+  const bouts = value && typeof value === "object" ? value.bouts : null;
+  if (!Array.isArray(bouts)) continue;
+  for (const bout of bouts) {
+    for (const side of ["f1_media", "f2_media"]) {
+      const portrait = bout?.[side]?.portrait;
+      if (typeof portrait === "string") portraits.add(portrait);
+    }
+  }
+}
+
+const portraitDir = join(dirname(out), "../../public/portraits");
+await mkdir(portraitDir, { recursive: true });
+let saved = 0;
+for (const path of portraits) {
+  const file = path.split("/").pop();
+  if (!file || file === "." || file === ".." || file.includes("..")) continue;
+  const response = await fetch(`${base}${path}`);
+  if (!response.ok) {
+    console.warn(`missing portrait ${path} (${response.status})`);
+    continue;
+  }
+  await writeFile(join(portraitDir, file), Buffer.from(await response.arrayBuffer()));
+  saved += 1;
+}
+console.log(`Wrote ${saved}/${portraits.size} portraits to ${portraitDir}`);
